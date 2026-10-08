@@ -32,6 +32,49 @@ export interface OrgContext {
   role: MemberRole;
 }
 
+// --- Esports module ---------------------------------------------------------
+
+export interface Team {
+  id: string;
+  name: string;
+  game: string;
+  format: string;
+  rosterCount: number;
+}
+
+export interface RosterPlayer {
+  slotId: string;
+  membershipId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  position: string | null;
+}
+
+/**
+ * A wellbeing check-in. Self-reported signals (1-5), NOT medical data.
+ * Used by the org to care for players — never a diagnosis.
+ */
+export interface WellbeingCheckin {
+  id: string;
+  membershipId: string;
+  checkinDate: string;
+  mood: number; // 1-5
+  rest: number; // 1-5
+  practiceHours: number;
+  note: string | null;
+}
+
+/** Burnout signal derived from recent check-ins. A prompt, not a verdict. */
+export type BurnoutSignal = "ok" | "watch" | "elevated" | "unknown";
+
+export interface PlayerWellbeing {
+  membershipId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  latest: WellbeingCheckin | null;
+  signal: BurnoutSignal;
+}
+
 /** Result wrapper so callers handle success/error explicitly (no throwing across layers). */
 export type Result<T> =
   | { ok: true; data: T }
