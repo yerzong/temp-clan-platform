@@ -5,6 +5,7 @@ import { MemberService } from "@/features/members/member-service";
 import { ContentService } from "@/features/content/content-service";
 import { CreateContentForm } from "@/features/content/components/create-content-form";
 import { TwitchImport } from "@/features/content/components/twitch-import";
+import { HighlightsFinder } from "@/features/content/components/highlights-finder";
 import { ContentBoard } from "@/features/content/components/content-board";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat";
@@ -108,6 +109,37 @@ export default async function ContentPage() {
           <div className="max-w-xl">
             <TwitchImport />
           </div>
+        </div>
+      </details>
+
+      {/* Find highlights — collapsible panel */}
+      <details className="group mb-6 rounded-lg border border-tc-border bg-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-5 py-4">
+          <div className="flex flex-col">
+            <span className="flex items-center gap-2 font-semibold text-tc-fg">
+              Find highlights
+              <span className="rounded bg-[hsl(var(--tc-accent)/0.14)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--tc-accent-hover))]">
+                beta
+              </span>
+            </span>
+            <span className="text-sm text-tc-fg-tertiary">
+              Surface a channel&apos;s most-watched clips as highlight
+              candidates.
+            </span>
+          </div>
+          <span className="rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary transition-colors group-hover:border-tc-accent group-hover:text-tc-fg group-open:hidden">
+            Open
+          </span>
+          <span className="hidden rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary group-open:inline">
+            Close
+          </span>
+        </summary>
+        <div className="border-t border-tc-border-soft p-5">
+          <HighlightsFinder />
+          <p className="mt-4 text-[11px] leading-relaxed text-tc-fg-muted">
+            Highlights are ranked by viewer clip views — the community&apos;s own
+            signal of the best moments. Full video AI analysis can come later.
+          </p>
         </div>
       </details>
 
