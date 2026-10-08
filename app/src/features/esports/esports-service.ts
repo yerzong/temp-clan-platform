@@ -74,6 +74,26 @@ export class EsportsService {
     return { ok: true, data: data.id as string };
   }
 
+  /** Delete a team (cascades its roster slots). */
+  async deleteTeam(teamId: string): Promise<Result<null>> {
+    const { error } = await this.supabase
+      .from("teams")
+      .delete()
+      .eq("id", teamId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Remove a player from a team roster. */
+  async removeFromRoster(slotId: string): Promise<Result<null>> {
+    const { error } = await this.supabase
+      .from("roster_slots")
+      .delete()
+      .eq("id", slotId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
   /** Players assigned to a team. */
   async listRoster(teamId: string): Promise<Result<RosterPlayer[]>> {
     const { data, error } = await this.supabase

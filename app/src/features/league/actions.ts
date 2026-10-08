@@ -125,3 +125,33 @@ export async function reportResult(
   revalidatePath("/dashboard/league");
   return {};
 }
+
+export async function deleteLeague(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const leagueId = String(formData.get("leagueId") ?? "");
+  if (!leagueId) return { error: "Missing league." };
+
+  const supabase = await createClient();
+  const result = await new LeagueService(supabase).deleteLeague(leagueId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/league");
+  return {};
+}
+
+export async function removeLeagueTeam(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const teamId = String(formData.get("teamId") ?? "");
+  if (!teamId) return { error: "Missing team." };
+
+  const supabase = await createClient();
+  const result = await new LeagueService(supabase).removeTeam(teamId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/league");
+  return {};
+}

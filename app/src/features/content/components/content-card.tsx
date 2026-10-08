@@ -1,9 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
-import { ExternalLink } from "lucide-react";
+import { useActionState, useState } from "react";
+import { ExternalLink, Trash2 } from "lucide-react";
 import type { ContentPiece, ContentStatus } from "@/lib/domain/types";
-import { setContentStatus, type ActionResult } from "../actions";
+import {
+  setContentStatus,
+  deleteContent,
+  type ActionResult,
+} from "../actions";
 import { Badge } from "@/components/ui/badge";
 
 const initialState: ActionResult = {};
@@ -32,6 +36,8 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
     setContentStatus,
     initialState
   );
+  const [, deleteAction, deleting] = useActionState(deleteContent, initialState);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const next = NEXT_STATUS[piece.status];
 
   return (
@@ -40,17 +46,47 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
         <span className="text-sm font-medium leading-snug text-tc-fg">
           {piece.title}
         </span>
-        {piece.url && (
-          <a
-            href={piece.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 text-tc-fg-muted transition-colors hover:text-tc-accent"
-            aria-label="Open link"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        )}
+        <div className="flex shrink-0 items-center gap-1.5">
+          {piece.url && (
+            <a
+              href={piece.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-tc-fg-muted transition-colors hover:text-tc-accent"
+              aria-label="Open link"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          )}
+          {confirmingDelete ? (
+            <form action={deleteAction} className="flex items-center gap-1">
+              <input type="hidden" name="contentId" value={piece.id} />
+              <button
+                type="submit"
+                disabled={deleting}
+                className="text-[11px] font-medium uppercase text-[hsl(var(--tc-destructive))]"
+              >
+                {deleting ? "..." : "Del"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(false)}
+                className="text-[11px] uppercase text-tc-fg-muted"
+              >
+                No
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(true)}
+              className="text-tc-fg-muted transition-colors hover:text-[hsl(var(--tc-destructive))]"
+              aria-label="Delete content"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">

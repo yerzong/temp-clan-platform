@@ -12,7 +12,9 @@ import { StandingsTable } from "@/features/league/components/standings-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat";
 import { EmptyState } from "@/components/ui/empty-state";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { PageHeader } from "@/components/layout/page-header";
+import { deleteLeague } from "@/features/league/actions";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -159,6 +161,25 @@ export default async function LeaguePage({
                 </CardHeader>
                 <CardContent>
                   <CreateMatchForm leagueId={current.id} teams={teams} />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="flex items-center justify-between gap-3 p-4">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-tc-fg">
+                      Delete this league
+                    </span>
+                    <span className="text-[11px] text-tc-fg-tertiary">
+                      Removes {current.name}, its teams and matches.
+                    </span>
+                  </div>
+                  <DeleteButton
+                    action={deleteLeague}
+                    idName="leagueId"
+                    idValue={current.id}
+                    label="Delete league"
+                  />
                 </CardContent>
               </Card>
             </>
