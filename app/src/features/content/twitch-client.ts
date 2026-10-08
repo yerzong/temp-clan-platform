@@ -20,6 +20,16 @@ export interface TwitchVod {
   publishedAt: string;
 }
 
+export interface TwitchClip {
+  id: string;
+  title: string;
+  url: string;
+  viewCount: number;
+  durationSeconds: number;
+  createdAt: string;
+  creatorName: string;
+}
+
 const TOKEN_URL = "https://id.twitch.tv/oauth2/token";
 const HELIX = "https://api.twitch.tv/helix";
 
@@ -135,6 +145,58 @@ export class TwitchClient {
     }));
 
     return { ok: true, data: vods };
+  }
+
+  /**
+   * Get a channel's top clips, ordered by view count. These are the community's
+   * own "highlights" — the moments viewers already marked as good — so view
+   * count is our highlight signal without processing any video.
+   * `days` optionally restricts to recently created clips.
+   */
+  async getTopClips(
+    login: string,
+    limit = 20,
+    days?: number
+  ): Promise<Result<TwitchClip[]>> {
+    const userId = await this.getUserId(login);
+    if (!userId.ok) return userId;
+
+    let path = `/clips?broadcaster_id=${userId.data}&first=${limit}`;
+    if (days && days > 0) {
+      const start = new Date();
+      start.setDate(start.getDate() - days);
+      path += `&started_at=${encodeURIComponent(start.toISOString())}`;
+    }
+
+    const res = await this.authedFetch(path);
+    if (!res.ok) return res;
+
+    const data = res.data as {
+      data?: {
+        id: string;
+        title: string;
+        url: string;
+        view_count: number;
+        duration: number;
+        created_at: string;
+        creator_name: string;
+      }[];
+    };
+
+    const clips: TwitchClip[] = (data.data ?? []).map((c) => ({
+      id: c.id,
+      title: c.title,
+      url: c.url,
+      viewCount: c.view_count,
+      durationSeconds: Math.round(c.duration),
+      createdAt: c.created_at,
+      creatorName: c.creator_name,
+    }));
+
+    // API returns ordered by views, but ensure it.
+    clips.sort((a, b) => b.viewCount - a.viewCount);
+
+    return { ok: true, data: clips };
   }
 }
 

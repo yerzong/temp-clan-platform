@@ -4,13 +4,21 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { ContentService } from "./content-service";
-import { TwitchClient, type TwitchVod } from "./twitch-client";
+import {
+  TwitchClient,
+  type TwitchVod,
+  type TwitchClip,
+} from "./twitch-client";
 import type { ContentPlatform, ContentStatus } from "@/lib/domain/types";
 
 export type ActionResult = { error?: string };
 
 export type FetchVodsResult =
   | { ok: true; vods: TwitchVod[] }
+  | { ok: false; error: string };
+
+export type FetchClipsResult =
+  | { ok: true; clips: TwitchClip[] }
   | { ok: false; error: string };
 
 const PLATFORMS: ContentPlatform[] = ["twitch", "youtube", "tiktok", "other"];
@@ -107,6 +115,55 @@ export async function importTwitchVod(
   const title = String(formData.get("title") ?? "").trim();
   const url = String(formData.get("url") ?? "").trim();
   if (!title || !url) return { error: "Missing VOD data." };
+
+  const org = await resolveOrgId();
+  if (!org.ok) return { error: org.error };
+
+  const supabase = await createClient();
+  const result = await new ContentService(supabase).createContent(org.orgId, {
+    title,
+    platform: "twitch",
+    url,
+    membershipId: null,
+  });
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/content");
+  return {};
+}
+
+/**
+ * Suggest highlights: a channel's top clips by view count. The community's own
+ * most-watched moments act as highlight signals — no video processing needed.
+ */
+export async function fetchHighlights(
+  channel: string,
+  days?: number
+): Promise<FetchClipsResult> {
+  const clean = channel.trim();
+  if (!clean) return { ok: false, error: "Enter a Twitch channel name." };
+
+  const twitch = new TwitchClient();
+  if (!twitch.isConfigured()) {
+    return {
+      ok: false,
+      error: "Twitch is not connected yet. Add server credentials first.",
+    };
+  }
+
+  const result = await twitch.getTopClips(clean, 20, days);
+  if (!result.ok) return { ok: false, error: result.error };
+  return { ok: true, clips: result.data };
+}
+
+/** Import a Twitch clip (highlight) as a content piece. */
+export async function importTwitchClip(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const title = String(formData.get("title") ?? "").trim();
+  const url = String(formData.get("url") ?? "").trim();
+  if (!title || !url) return { error: "Missing clip data." };
 
   const org = await resolveOrgId();
   if (!org.ok) return { error: org.error };
