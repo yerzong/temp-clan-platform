@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+/*
+  Temp Platform — Tactical Command Center
+  Design world: Gears / COG. Gunmetal steel, destroyed-concrete grays,
+  COG red-amber accent (emblem + combat HUD alerts). Accent carries meaning
+  (action/status) only — never decoration. Invisible-craft layering: surfaces
+  shift by a few points of lightness; borders whisper.
+*/
+
+:root {
+  /* --- Surface elevation (gunmetal; higher = slightly lighter) --- */
+  --tc-canvas: 20 7% 7%; /* page base */
+  --tc-surface-1: 24 6% 10%; /* cards */
+  --tc-surface-2: 24 6% 13%; /* raised: dropdowns, popovers */
+  --tc-surface-3: 24 5% 16%; /* inputs are inset -> slightly darker handled below */
+  --tc-inset: 20 8% 6%; /* input background (inset, darker) */
+
+  /* --- Text hierarchy (4 levels) --- */
+  --tc-fg: 40 12% 92%; /* primary */
+  --tc-fg-secondary: 36 8% 70%; /* supporting */
+  --tc-fg-tertiary: 32 6% 52%; /* metadata */
+  --tc-fg-muted: 30 5% 38%; /* disabled / placeholder */
+
+  /* --- Borders (progression) --- */
+  --tc-border: 30 6% 20%; /* standard */
+  --tc-border-soft: 30 6% 16%; /* softer separation */
+  --tc-border-strong: 28 8% 30%; /* emphasis */
+
+  /* --- Brand accent: COG red-amber --- */
+  --tc-accent: 14 82% 52%; /* primary action */
+  --tc-accent-hover: 16 86% 58%;
+  --tc-accent-fg: 20 20% 97%; /* text on accent */
+  --tc-amber: 36 90% 55%; /* secondary status / warning-ish highlight */
+
+  /* --- Semantic --- */
+  --tc-success: 150 45% 45%;
+  --tc-warning: 38 88% 52%;
+  --tc-destructive: 2 70% 50%;
+
+  /* --- shadcn/ui token bridge --- */
+  --background: hsl(var(--tc-canvas));
+  --foreground: hsl(var(--tc-fg));
+  --card: hsl(var(--tc-surface-1));
+  --card-foreground: hsl(var(--tc-fg));
+  --popover: hsl(var(--tc-surface-2));
+  --popover-foreground: hsl(var(--tc-fg));
+  --primary: hsl(var(--tc-accent));
+  --primary-foreground: hsl(var(--tc-accent-fg));
+  --secondary: hsl(var(--tc-surface-2));
+  --secondary-foreground: hsl(var(--tc-fg-secondary));
+  --muted: hsl(var(--tc-surface-2));
+  --muted-foreground: hsl(var(--tc-fg-tertiary));
+  --accent: hsl(var(--tc-surface-3));
+  --accent-foreground: hsl(var(--tc-fg));
+  --destructive: hsl(var(--tc-destructive));
+  --destructive-foreground: hsl(var(--tc-fg));
+  --border: hsl(var(--tc-border));
+  --input: hsl(var(--tc-inset));
+  --ring: hsl(var(--tc-accent));
+  --radius: 0.375rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Direct tactical tokens for custom components */
+  --color-tc-surface-1: hsl(var(--tc-surface-1));
+  --color-tc-surface-2: hsl(var(--tc-surface-2));
+  --color-tc-surface-3: hsl(var(--tc-surface-3));
+  --color-tc-fg: hsl(var(--tc-fg));
+  --color-tc-fg-secondary: hsl(var(--tc-fg-secondary));
+  --color-tc-fg-tertiary: hsl(var(--tc-fg-tertiary));
+  --color-tc-fg-muted: hsl(var(--tc-fg-muted));
+  --color-tc-border: hsl(var(--tc-border));
+  --color-tc-border-soft: hsl(var(--tc-border-soft));
+  --color-tc-border-strong: hsl(var(--tc-border-strong));
+  --color-tc-accent: hsl(var(--tc-accent));
+  --color-tc-accent-hover: hsl(var(--tc-accent-hover));
+  --color-tc-amber: hsl(var(--tc-amber));
+  --color-tc-success: hsl(var(--tc-success));
+  --color-tc-warning: hsl(var(--tc-warning));
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.625rem;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  border-color: hsl(var(--tc-border));
+}
+
+body {
+  background: hsl(var(--tc-canvas));
+  color: hsl(var(--tc-fg));
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin tactical scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--tc-canvas));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--tc-border-strong));
+  border-radius: 999px;
+  border: 2px solid hsl(var(--tc-canvas));
+}
