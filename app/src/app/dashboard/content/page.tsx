@@ -64,39 +64,45 @@ export default async function ContentPage() {
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <section className="min-w-0">
-          {contentRes.ok === false ? (
-            <Card>
-              <CardContent className="p-6 text-sm text-[hsl(var(--tc-destructive))]">
-                Could not load content: {contentRes.error}
-              </CardContent>
-            </Card>
-          ) : pieces.length === 0 ? (
-            <EmptyState
-              icon={<Clapperboard className="h-4 w-4" />}
-              title="No content yet"
-              description="Add your first clip or video on the right to start the pipeline."
-            />
-          ) : (
-            <ContentBoard pieces={pieces} />
-          )}
-        </section>
+      {/* Add content — collapsible panel so the board below gets full width */}
+      <details className="group mb-6 rounded-lg border border-tc-border bg-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-5 py-4">
+          <div className="flex flex-col">
+            <span className="font-semibold text-tc-fg">Add content</span>
+            <span className="text-sm text-tc-fg-tertiary">
+              Track a clip or video through the pipeline.
+            </span>
+          </div>
+          <span className="rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary transition-colors group-hover:border-tc-accent group-hover:text-tc-fg group-open:hidden">
+            + New
+          </span>
+          <span className="hidden rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary group-open:inline">
+            Close
+          </span>
+        </summary>
+        <div className="border-t border-tc-border-soft p-5">
+          <div className="max-w-md">
+            <CreateContentForm creators={creators} />
+          </div>
+        </div>
+      </details>
 
-        <aside>
-          <Card className="lg:sticky lg:top-6">
-            <CardHeader>
-              <CardTitle className="text-base">Add content</CardTitle>
-              <p className="text-sm text-tc-fg-tertiary">
-                Track a clip or video through the pipeline.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <CreateContentForm creators={creators} />
-            </CardContent>
-          </Card>
-        </aside>
-      </div>
+      {/* Board — full width */}
+      {contentRes.ok === false ? (
+        <Card>
+          <CardContent className="p-6 text-sm text-[hsl(var(--tc-destructive))]">
+            Could not load content: {contentRes.error}
+          </CardContent>
+        </Card>
+      ) : pieces.length === 0 ? (
+        <EmptyState
+          icon={<Clapperboard className="h-4 w-4" />}
+          title="No content yet"
+          description="Open “Add content” above to start the pipeline."
+        />
+      ) : (
+        <ContentBoard pieces={pieces} />
+      )}
     </div>
   );
 }

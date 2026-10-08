@@ -33,13 +33,12 @@ export default async function DashboardLayout({
     "Commander";
 
   return (
-    <AppShell userName={userName} actions={<SignOutButton />}>
-      <div className="grid gap-8 md:grid-cols-[180px_1fr]">
-        <aside className="md:border-r md:border-tc-border-soft md:pr-4">
-          <SideNav items={NAV} />
-        </aside>
-        <div className="min-w-0">{children}</div>
-      </div>
+    <AppShell
+      userName={userName}
+      actions={<SignOutButton />}
+      nav={<SideNav items={NAV} />}
+    >
+      {children}
     </AppShell>
   );
 }

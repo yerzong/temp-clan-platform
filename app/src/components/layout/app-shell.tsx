@@ -2,21 +2,23 @@ import type { ReactNode } from "react";
 import { BrandMark } from "./brand-mark";
 
 /**
- * App shell: the reusable frame (header + content area) for every signed-in
- * screen. Modules render their content as children — the shell is generic and
- * knows nothing about any specific feature.
+ * App shell with a fixed left sidebar (brand + nav + user/actions) and a wide
+ * content area. The sidebar shares the canvas background with a border — not a
+ * different color — so the space reads as one surface, not two worlds.
  */
 export function AppShell({
   children,
   userName,
   actions,
+  nav,
 }: {
   children: ReactNode;
   userName?: string;
   actions?: ReactNode;
+  nav?: ReactNode;
 }) {
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen md:grid md:grid-cols-[232px_1fr]">
       {/* Subtle tactical grid texture across the whole app */}
       <div
         aria-hidden
@@ -27,18 +29,29 @@ export function AppShell({
           backgroundSize: "56px 56px",
         }}
       />
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-tc-border-soft bg-[hsl(var(--tc-canvas)/0.85)] px-6 py-4 backdrop-blur">
-        <BrandMark />
-        <div className="flex items-center gap-4">
+
+      {/* Sidebar */}
+      <aside className="relative z-10 flex flex-col gap-6 border-b border-tc-border-soft bg-[hsl(var(--tc-canvas))] px-4 py-5 md:sticky md:top-0 md:h-screen md:border-b-0 md:border-r">
+        <div className="px-2">
+          <BrandMark />
+        </div>
+
+        <div className="flex-1">{nav}</div>
+
+        <div className="flex flex-col gap-3 border-t border-tc-border-soft px-2 pt-4">
           {userName && (
-            <span className="hidden text-sm text-tc-fg-secondary sm:inline">
+            <span className="truncate text-sm text-tc-fg-secondary">
               {userName}
             </span>
           )}
           {actions}
         </div>
-      </header>
-      <main className="relative mx-auto max-w-5xl px-6 py-10">{children}</main>
+      </aside>
+
+      {/* Content */}
+      <main className="relative z-0 min-w-0 px-6 py-8 lg:px-10">
+        <div className="mx-auto max-w-6xl">{children}</div>
+      </main>
     </div>
   );
 }
