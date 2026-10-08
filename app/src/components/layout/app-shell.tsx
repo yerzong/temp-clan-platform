@@ -16,17 +16,29 @@ export function AppShell({
   actions?: ReactNode;
 }) {
   return (
-    <div className="min-h-screen">
-      <header className="flex items-center justify-between border-b border-tc-border-soft px-6 py-4">
+    <div className="relative min-h-screen">
+      {/* Subtle tactical grid texture across the whole app */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(var(--tc-fg)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--tc-fg)) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+        }}
+      />
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-tc-border-soft bg-[hsl(var(--tc-canvas)/0.85)] px-6 py-4 backdrop-blur">
         <BrandMark />
         <div className="flex items-center gap-4">
           {userName && (
-            <span className="text-sm text-tc-fg-secondary">{userName}</span>
+            <span className="hidden text-sm text-tc-fg-secondary sm:inline">
+              {userName}
+            </span>
           )}
           {actions}
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-6 py-10">{children}</main>
+      <main className="relative mx-auto max-w-5xl px-6 py-10">{children}</main>
     </div>
   );
 }

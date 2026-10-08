@@ -14,9 +14,15 @@ function initials(name: string): string {
 /** Operator dossier card — the design signature for Temp Platform. */
 export function MemberCard({ member }: { member: Member }) {
   return (
-    <div className="group flex items-center gap-4 rounded-lg border border-tc-border bg-card p-4 transition-colors hover:border-tc-border-strong">
+    <div className="group relative flex items-center gap-4 overflow-hidden rounded-lg border border-tc-border bg-card p-4 transition-all hover:border-tc-border-strong hover:bg-tc-surface-1">
+      {/* Rank edge — appears on hover as a command accent */}
+      <span
+        aria-hidden
+        className="absolute inset-y-0 left-0 w-0.5 bg-[hsl(var(--tc-accent))] opacity-0 transition-opacity group-hover:opacity-100"
+      />
+
       {/* Avatar / insignia */}
-      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-tc-border bg-tc-surface-2">
+      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-tc-border bg-tc-surface-2 transition-colors group-hover:border-tc-border-strong">
         {member.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -36,11 +42,9 @@ export function MemberCard({ member }: { member: Member }) {
 
       {/* Identity */}
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex items-center gap-2">
-          <span className="truncate font-medium text-tc-fg">
-            {member.displayName}
-          </span>
-        </div>
+        <span className="truncate font-medium text-tc-fg">
+          {member.displayName}
+        </span>
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge variant={member.role as RoleVariant}>{member.role}</Badge>
           {member.isPlayer && <Badge variant="player">player</Badge>}

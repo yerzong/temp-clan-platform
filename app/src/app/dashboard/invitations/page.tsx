@@ -4,6 +4,7 @@ import { OrganizationService } from "@/features/organizations/organization-servi
 import { InvitationService } from "@/features/invitations/invitation-service";
 import { CreateInviteForm } from "@/features/invitations/components/create-invite-form";
 import { InviteList } from "@/features/invitations/components/invite-list";
+import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
@@ -36,18 +37,11 @@ export default async function InvitationsPage() {
 
   return (
     <div>
-      <div className="mb-8 flex flex-col gap-1 border-b border-tc-border-soft pb-6">
-        <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-tc-fg-muted">
-          Access
-        </span>
-        <h1 className="text-3xl font-semibold tracking-tight text-tc-fg">
-          Invitations
-        </h1>
-        <p className="mt-1 text-sm text-tc-fg-tertiary">
-          Invite people to join {ctx.data.organization.name} with their Discord
-          account.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Access"
+        title="Invitations"
+        subtitle={`Invite people to join ${ctx.data.organization.name} with their Discord account.`}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <section className="flex flex-col gap-3">
