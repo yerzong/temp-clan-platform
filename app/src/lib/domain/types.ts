@@ -76,6 +76,18 @@ export interface PlayerWellbeing {
   signal: BurnoutSignal;
 }
 
+// --- Invitations ------------------------------------------------------------
+
+export type InvitationStatus = "pending" | "accepted" | "revoked";
+
+export interface Invitation {
+  id: string;
+  token: string;
+  role: MemberRole;
+  status: InvitationStatus;
+  createdAt: string;
+}
+
 /** Result wrapper so callers handle success/error explicitly (no throwing across layers). */
 export type Result<T> =
   | { ok: true; data: T }

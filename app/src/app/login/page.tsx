@@ -1,29 +1,30 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { BrandMark } from "@/components/layout/brand-mark";
 
-export default function LoginPage() {
+function LoginContent() {
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/dashboard";
+
   async function signInWithDiscord() {
     const supabase = createClient();
+    const callback = new URL("/auth/callback", window.location.origin);
+    callback.searchParams.set("next", next);
     await supabase.auth.signInWithOAuth({
       provider: "discord",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: callback.toString() },
     });
   }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6">
       <div className="flex w-full max-w-sm flex-col items-center gap-8">
-        <div className="flex items-center gap-2.5">
-          <span className="h-2 w-2 rounded-full bg-tc-accent shadow-[0_0_8px_hsl(var(--tc-accent))]" />
-          <span className="font-mono text-xs uppercase tracking-[0.3em] text-tc-fg-tertiary">
-            Temp Platform
-          </span>
-        </div>
+        <BrandMark />
 
         <Card className="w-full">
           <CardContent className="flex flex-col items-center gap-6 p-7">
@@ -47,5 +48,13 @@ export default function LoginPage() {
         </Card>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   );
 }
