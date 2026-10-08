@@ -23,7 +23,17 @@ export default async function EsportsPage() {
   const orgService = new OrganizationService(supabase);
   const ctx = await orgService.getCurrentOrgContext(user.id);
 
-  if (!ctx.ok || !ctx.data) {
+  if (!ctx.ok) {
+    return (
+      <Card className="mx-auto max-w-md">
+        <CardContent className="p-6 text-center text-sm text-[hsl(var(--tc-destructive))]">
+          Error loading organization: {ctx.error}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!ctx.data) {
     return (
       <Card className="mx-auto max-w-md">
         <CardContent className="p-6 text-center text-sm text-tc-fg-tertiary">

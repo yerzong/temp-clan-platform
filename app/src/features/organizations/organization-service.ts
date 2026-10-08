@@ -23,13 +23,19 @@ export class OrganizationService {
     if (error) return { ok: false, error: error.message };
     if (!data || !data.organizations) return { ok: true, data: null };
 
-    const org = data.organizations as unknown as {
+    // PostgREST may return the joined relation as an object or a single-item
+    // array depending on how it infers the relationship. Normalize both.
+    type OrgRow = {
       id: string;
       name: string;
       slug: string;
       logo_url: string | null;
       plan: string;
     };
+    const rel = data.organizations as unknown as OrgRow | OrgRow[];
+    const org = Array.isArray(rel) ? rel[0] : rel;
+
+    if (!org) return { ok: true, data: null };
 
     return {
       ok: true,
