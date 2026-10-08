@@ -1,5 +1,7 @@
+import { Users } from "lucide-react";
 import type { Member, Result } from "@/lib/domain/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MemberCard } from "./member-card";
 import { AddMemberForm } from "./add-member-form";
 
@@ -25,11 +27,11 @@ export function RosterPanel({ members }: { members: Result<Member[]> }) {
             </CardContent>
           </Card>
         ) : list.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center text-sm text-tc-fg-tertiary">
-              No members yet. Add your first operator on the right.
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<Users className="h-4 w-4" />}
+            title="No operators deployed"
+            description="Add your first staff member, player, or creator on the right."
+          />
         ) : (
           <div className="flex flex-col gap-2.5">
             {list.map((m) => (

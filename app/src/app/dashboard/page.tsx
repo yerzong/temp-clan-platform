@@ -4,14 +4,12 @@ import { OrganizationService } from "@/features/organizations/organization-servi
 import { MemberService } from "@/features/members/member-service";
 import { CreateOrgForm } from "@/features/organizations/components/create-org-form";
 import { RosterPanel } from "@/features/members/components/roster-panel";
-import { AppShell } from "@/components/layout/app-shell";
-import { SignOutButton } from "@/components/layout/sign-out-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Stat } from "@/components/ui/stat";
+import { StatTile } from "@/components/ui/stat";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardOverviewPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -19,44 +17,32 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/login");
 
-  const userName =
-    (user.user_metadata?.full_name as string | undefined) ??
-    (user.user_metadata?.name as string | undefined) ??
-    user.email ??
-    "Commander";
-
   const orgService = new OrganizationService(supabase);
   const ctx = await orgService.getCurrentOrgContext(user.id);
 
-  // --- Error state ---
   if (!ctx.ok) {
     return (
-      <AppShell userName={userName} actions={<SignOutButton />}>
-        <Card className="mx-auto max-w-md">
-          <CardContent className="p-6 text-center text-sm text-[hsl(var(--tc-destructive))]">
-            Could not load your organization: {ctx.error}
-          </CardContent>
-        </Card>
-      </AppShell>
+      <Card className="mx-auto max-w-md">
+        <CardContent className="p-6 text-center text-sm text-[hsl(var(--tc-destructive))]">
+          Could not load your organization: {ctx.error}
+        </CardContent>
+      </Card>
     );
   }
 
-  // --- Empty state: onboarding ---
   if (!ctx.data) {
     return (
-      <AppShell userName={userName} actions={<SignOutButton />}>
-        <Card className="mx-auto max-w-md">
-          <CardHeader>
-            <CardTitle className="text-xl">Create your organization</CardTitle>
-            <p className="text-sm text-tc-fg-tertiary">
-              Set up your command center to begin.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <CreateOrgForm />
-          </CardContent>
-        </Card>
-      </AppShell>
+      <Card className="mx-auto max-w-md">
+        <CardHeader>
+          <CardTitle className="text-xl">Create your organization</CardTitle>
+          <p className="text-sm text-tc-fg-tertiary">
+            Set up your command center to begin.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <CreateOrgForm />
+        </CardContent>
+      </Card>
     );
   }
 
@@ -66,7 +52,7 @@ export default async function DashboardPage() {
   const list = members.ok ? members.data : [];
 
   return (
-    <AppShell userName={userName} actions={<SignOutButton />}>
+    <div>
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-tc-border-soft pb-6">
         <div className="flex flex-col gap-1">
           <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-tc-fg-muted">
@@ -76,10 +62,13 @@ export default async function DashboardPage() {
             {organization.name}
           </h1>
         </div>
-        <div className="flex gap-6">
-          <Stat label="Members" value={list.length} />
-          <Stat label="Players" value={list.filter((m) => m.isPlayer).length} />
-          <Stat
+        <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
+          <StatTile label="Members" value={list.length} tone="accent" />
+          <StatTile
+            label="Players"
+            value={list.filter((m) => m.isPlayer).length}
+          />
+          <StatTile
             label="Creators"
             value={list.filter((m) => m.isCreator).length}
           />
@@ -87,6 +76,6 @@ export default async function DashboardPage() {
       </div>
 
       <RosterPanel members={members} />
-    </AppShell>
+    </div>
   );
 }
