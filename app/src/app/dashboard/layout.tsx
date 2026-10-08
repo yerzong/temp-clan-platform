@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { OrganizationService } from "@/features/organizations/organization-service";
 import { AppShell } from "@/components/layout/app-shell";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { SideNav, type NavItem } from "@/components/layout/side-nav";
@@ -32,14 +33,28 @@ export default async function DashboardLayout({
     user.email ??
     "Commander";
 
+  const ctx = await new OrganizationService(supabase).getCurrentOrgContext(
+    user.id
+  );
+  const orgName = ctx.ok && ctx.data ? ctx.data.organization.name : null;
+
   return (
-    <AppShell userName={userName} actions={<SignOutButton />}>
-      <div className="grid gap-8 md:grid-cols-[180px_1fr]">
-        <aside className="md:border-r md:border-tc-border-soft md:pr-4">
-          <SideNav items={NAV} />
-        </aside>
-        <div className="min-w-0">{children}</div>
-      </div>
+    <AppShell
+      userName={userName}
+      actions={<SignOutButton />}
+      nav={<SideNav items={NAV} />}
+      topLeft={
+        orgName ? (
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-tc-fg-muted">
+              Org
+            </span>
+            <span className="truncate font-medium text-tc-fg">{orgName}</span>
+          </div>
+        ) : null
+      }
+    >
+      {children}
     </AppShell>
   );
 }
