@@ -65,4 +65,67 @@ export class MemberService {
     if (error) return { ok: false, error: error.message };
     return { ok: true, data: data as string };
   }
+
+  /** Update a member's role and profile attributes. */
+  async updateMember(
+    membershipId: string,
+    input: {
+      displayName: string;
+      role: MemberRole;
+      isCreator: boolean;
+      isPlayer: boolean;
+    }
+  ): Promise<Result<null>> {
+    // Guard: do not allow changing the owner's role away from owner.
+    const { data: current, error: readError } = await this.supabase
+      .from("memberships")
+      .select("role")
+      .eq("id", membershipId)
+      .single();
+
+    if (readError) return { ok: false, error: readError.message };
+    if (current.role === "owner" && input.role !== "owner") {
+      return { ok: false, error: "You cannot change the owner's role." };
+    }
+
+    const { error: roleError } = await this.supabase
+      .from("memberships")
+      .update({ role: input.role })
+      .eq("id", membershipId);
+    if (roleError) return { ok: false, error: roleError.message };
+
+    const { error: profileError } = await this.supabase
+      .from("member_profiles")
+      .update({
+        display_name: input.displayName,
+        is_creator: input.isCreator,
+        is_player: input.isPlayer,
+      })
+      .eq("membership_id", membershipId);
+    if (profileError) return { ok: false, error: profileError.message };
+
+    return { ok: true, data: null };
+  }
+
+  /** Remove a member. Refuses to delete the organization owner. */
+  async deleteMember(membershipId: string): Promise<Result<null>> {
+    const { data: current, error: readError } = await this.supabase
+      .from("memberships")
+      .select("role")
+      .eq("id", membershipId)
+      .single();
+
+    if (readError) return { ok: false, error: readError.message };
+    if (current.role === "owner") {
+      return { ok: false, error: "You cannot remove the owner." };
+    }
+
+    const { error } = await this.supabase
+      .from("memberships")
+      .delete()
+      .eq("id", membershipId);
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
 }
