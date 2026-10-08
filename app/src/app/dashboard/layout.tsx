@@ -10,6 +10,7 @@ const NAV: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: "overview" },
   { href: "/dashboard/esports", label: "Esports", icon: "esports" },
   { href: "/dashboard/content", label: "Content", icon: "content" },
+  { href: "/dashboard/league", label: "Temp League", icon: "league" },
   { href: "/dashboard/invitations", label: "Invitations", icon: "invitations" },
 ];
 

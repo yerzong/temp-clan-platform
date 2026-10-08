@@ -7,6 +7,7 @@ import {
   Swords,
   UserPlus,
   Clapperboard,
+  Trophy,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const ICONS: Record<string, LucideIcon> = {
   overview: LayoutGrid,
   esports: Swords,
   content: Clapperboard,
+  league: Trophy,
   invitations: UserPlus,
 };
 
