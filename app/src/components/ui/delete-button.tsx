@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -13,8 +13,8 @@ type DeleteAction = (
 
 /**
  * Generic delete control with inline confirmation. Reusable across modules.
- * Pass the server action, the id field name, and the id value. Renders an icon
- * button that expands to a "Remove? Yes/No" confirm before submitting.
+ * Calls the server action directly via a transition (robust when the action is
+ * passed as a prop from a server component).
  */
 export function DeleteButton({
   action,
@@ -28,29 +28,48 @@ export function DeleteButton({
   label?: string;
 }) {
   const [confirming, setConfirming] = useState(false);
-  const [state, formAction, pending] = useActionState(action, {});
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function doDelete() {
+    setError(null);
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set(idName, idValue);
+      const res = await action({}, fd);
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        setConfirming(false);
+      }
+    });
+  }
 
   if (confirming) {
     return (
       <div className="flex items-center gap-1.5">
-        <form action={formAction} className="flex items-center gap-1.5">
-          <input type="hidden" name={idName} value={idValue} />
-          <span className="text-[11px] text-tc-fg-tertiary">{label}?</span>
-          <Button type="submit" variant="destructive" size="sm" disabled={pending}>
-            {pending ? "..." : "Yes"}
-          </Button>
-        </form>
+        <span className="text-[11px] text-tc-fg-tertiary">{label}?</span>
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          disabled={pending}
+          onClick={doDelete}
+        >
+          {pending ? "..." : "Yes"}
+        </Button>
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={() => setConfirming(false)}
+          disabled={pending}
         >
           No
         </Button>
-        {state.error && (
+        {error && (
           <span className="text-[11px] text-[hsl(var(--tc-destructive))]">
-            {state.error}
+            {error}
           </span>
         )}
       </div>

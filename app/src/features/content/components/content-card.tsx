@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { ExternalLink, Trash2 } from "lucide-react";
 import type { ContentPiece, ContentStatus } from "@/lib/domain/types";
 import {
@@ -36,9 +36,17 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
     setContentStatus,
     initialState
   );
-  const [, deleteAction, deleting] = useActionState(deleteContent, initialState);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, startDelete] = useTransition();
   const next = NEXT_STATUS[piece.status];
+
+  function doDelete() {
+    startDelete(async () => {
+      const fd = new FormData();
+      fd.set("contentId", piece.id);
+      await deleteContent({}, fd);
+    });
+  }
 
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-tc-border bg-card p-3">
@@ -59,10 +67,10 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
             </a>
           )}
           {confirmingDelete ? (
-            <form action={deleteAction} className="flex items-center gap-1">
-              <input type="hidden" name="contentId" value={piece.id} />
+            <div className="flex items-center gap-1.5">
               <button
-                type="submit"
+                type="button"
+                onClick={doDelete}
                 disabled={deleting}
                 className="text-[11px] font-medium uppercase text-[hsl(var(--tc-destructive))]"
               >
@@ -75,7 +83,7 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
               >
                 No
               </button>
-            </form>
+            </div>
           ) : (
             <button
               type="button"
