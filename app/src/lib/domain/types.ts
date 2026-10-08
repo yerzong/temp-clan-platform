@@ -88,6 +88,21 @@ export interface Invitation {
   createdAt: string;
 }
 
+// --- Content module ---------------------------------------------------------
+
+export type ContentPlatform = "twitch" | "youtube" | "tiktok" | "other";
+export type ContentStatus = "idea" | "editing" | "review" | "published";
+
+export interface ContentPiece {
+  id: string;
+  title: string;
+  platform: ContentPlatform;
+  status: ContentStatus;
+  url: string | null;
+  authorName: string | null;
+  createdAt: string;
+}
+
 /** Result wrapper so callers handle success/error explicitly (no throwing across layers). */
 export type Result<T> =
   | { ok: true; data: T }

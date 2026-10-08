@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Swords, UserPlus, type LucideIcon } from "lucide-react";
+import {
+  LayoutGrid,
+  Swords,
+  UserPlus,
+  Clapperboard,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface NavItem {
@@ -14,6 +20,7 @@ export interface NavItem {
 const ICONS: Record<string, LucideIcon> = {
   overview: LayoutGrid,
   esports: Swords,
+  content: Clapperboard,
   invitations: UserPlus,
 };
 
