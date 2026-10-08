@@ -4,6 +4,7 @@ import { OrganizationService } from "@/features/organizations/organization-servi
 import { MemberService } from "@/features/members/member-service";
 import { EsportsService } from "@/features/esports/esports-service";
 import { CreateTeamForm } from "@/features/esports/components/create-team-form";
+import { AssignRosterForm } from "@/features/esports/components/assign-roster-form";
 import { CheckinForm } from "@/features/esports/components/checkin-form";
 import { WellbeingPanel } from "@/features/esports/components/wellbeing-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,17 +103,37 @@ export default async function EsportsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-2.5 sm:grid-cols-2">
+              <div className="grid gap-2.5">
                 {teams.map((t) => (
                   <div
                     key={t.id}
-                    className="flex items-center justify-between rounded-lg border border-tc-border bg-card p-4"
+                    className="rounded-lg border border-tc-border bg-card p-4"
                   >
-                    <div className="flex flex-col gap-1">
-                      <span className="font-medium text-tc-fg">{t.name}</span>
-                      <Badge>{t.format}</Badge>
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-tc-fg">{t.name}</span>
+                        <Badge>{t.format}</Badge>
+                      </div>
+                      <Stat label="Roster" value={t.rosterCount} />
                     </div>
-                    <Stat label="Roster" value={t.rosterCount} />
+
+                    {t.roster.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1.5 border-t border-tc-border-soft pt-3">
+                        {t.roster.map((p) => (
+                          <span
+                            key={p.slotId}
+                            className="inline-flex items-center gap-1.5 rounded border border-tc-border bg-tc-surface-2 px-2 py-1 text-xs text-tc-fg-secondary"
+                          >
+                            {p.displayName}
+                            {p.position && (
+                              <span className="font-mono text-[10px] uppercase text-tc-fg-muted">
+                                {p.position}
+                              </span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -136,6 +157,18 @@ export default async function EsportsPage() {
             </CardHeader>
             <CardContent>
               <CreateTeamForm />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Assign to roster</CardTitle>
+              <p className="text-sm text-tc-fg-tertiary">
+                Put a player on a team.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <AssignRosterForm teams={teams} players={playerOptions} />
             </CardContent>
           </Card>
 

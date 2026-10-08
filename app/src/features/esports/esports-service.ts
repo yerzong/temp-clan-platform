@@ -16,25 +16,45 @@ import type {
 export class EsportsService {
   constructor(private readonly supabase: SupabaseClient) {}
 
-  /** All teams in an org, with roster counts. */
+  /** All teams in an org, each with its roster players. */
   async listTeams(orgId: string): Promise<Result<Team[]>> {
     const { data, error } = await this.supabase
       .from("teams")
-      .select("id, name, game, format, roster_slots ( id )")
+      .select(
+        "id, name, game, format, roster_slots ( id, position, membership_id, memberships ( member_profiles ( display_name, avatar_url ) ) )"
+      )
       .eq("org_id", orgId)
       .order("created_at", { ascending: true });
 
     if (error) return { ok: false, error: error.message };
 
-    const teams: Team[] = (data ?? []).map((row) => ({
-      id: row.id as string,
-      name: row.name as string,
-      game: row.game as string,
-      format: row.format as string,
-      rosterCount: Array.isArray(row.roster_slots)
-        ? row.roster_slots.length
-        : 0,
-    }));
+    const teams: Team[] = (data ?? []).map((row) => {
+      const slots = Array.isArray(row.roster_slots) ? row.roster_slots : [];
+      const roster: RosterPlayer[] = slots.map((s: Record<string, unknown>) => {
+        const membership = s.memberships as unknown as {
+          member_profiles?: {
+            display_name?: string;
+            avatar_url?: string | null;
+          };
+        } | null;
+        const profile = membership?.member_profiles;
+        return {
+          slotId: s.id as string,
+          membershipId: s.membership_id as string,
+          displayName: profile?.display_name ?? "Unnamed",
+          avatarUrl: profile?.avatar_url ?? null,
+          position: (s.position as string | null) ?? null,
+        };
+      });
+      return {
+        id: row.id as string,
+        name: row.name as string,
+        game: row.game as string,
+        format: row.format as string,
+        rosterCount: roster.length,
+        roster,
+      };
+    });
 
     return { ok: true, data: teams };
   }

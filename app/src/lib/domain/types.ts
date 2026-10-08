@@ -40,6 +40,7 @@ export interface Team {
   game: string;
   format: string;
   rosterCount: number;
+  roster: RosterPlayer[];
 }
 
 export interface RosterPlayer {
