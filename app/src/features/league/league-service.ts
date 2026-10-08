@@ -84,6 +84,26 @@ export class LeagueService {
     return { ok: true, data: data.id as string };
   }
 
+  /** Delete a league (cascades its teams and matches). */
+  async deleteLeague(leagueId: string): Promise<Result<null>> {
+    const { error } = await this.supabase
+      .from("leagues")
+      .delete()
+      .eq("id", leagueId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Remove a team from a league (cascades its matches). */
+  async removeTeam(teamId: string): Promise<Result<null>> {
+    const { error } = await this.supabase
+      .from("league_teams")
+      .delete()
+      .eq("id", teamId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
   async listMatches(leagueId: string): Promise<Result<Match[]>> {
     const { data, error } = await this.supabase
       .from("matches")

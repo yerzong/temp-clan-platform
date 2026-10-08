@@ -180,3 +180,18 @@ export async function importTwitchClip(
   revalidatePath("/dashboard/content");
   return {};
 }
+
+export async function deleteContent(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const contentId = String(formData.get("contentId") ?? "");
+  if (!contentId) return { error: "Missing content." };
+
+  const supabase = await createClient();
+  const result = await new ContentService(supabase).deleteContent(contentId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/content");
+  return {};
+}

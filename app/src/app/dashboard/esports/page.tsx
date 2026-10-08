@@ -12,7 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Stat, StatTile } from "@/components/ui/stat";
 import { EmptyState } from "@/components/ui/empty-state";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { PageHeader } from "@/components/layout/page-header";
+import { deleteTeam } from "@/features/esports/actions";
 import type { RosterPlayer } from "@/lib/domain/types";
 
 export const dynamic = "force-dynamic";
@@ -118,7 +120,15 @@ export default async function EsportsPage() {
                         <span className="font-medium text-tc-fg">{t.name}</span>
                         <Badge>{t.format}</Badge>
                       </div>
-                      <Stat label="Roster" value={t.rosterCount} />
+                      <div className="flex items-center gap-3">
+                        <Stat label="Roster" value={t.rosterCount} />
+                        <DeleteButton
+                          action={deleteTeam}
+                          idName="teamId"
+                          idValue={t.id}
+                          label="Delete team"
+                        />
+                      </div>
                     </div>
 
                     {t.roster.length > 0 && (

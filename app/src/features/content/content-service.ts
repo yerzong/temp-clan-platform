@@ -83,4 +83,15 @@ export class ContentService {
     if (error) return { ok: false, error: error.message };
     return { ok: true, data: null };
   }
+
+  /** Delete a content piece. */
+  async deleteContent(contentId: string): Promise<Result<null>> {
+    const { error } = await this.supabase
+      .from("content_pieces")
+      .delete()
+      .eq("id", contentId);
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
 }

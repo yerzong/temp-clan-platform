@@ -106,3 +106,33 @@ export async function addCheckin(
   revalidatePath("/dashboard/esports");
   return {};
 }
+
+export async function deleteTeam(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const teamId = String(formData.get("teamId") ?? "");
+  if (!teamId) return { error: "Missing team." };
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).deleteTeam(teamId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports");
+  return {};
+}
+
+export async function removeFromRoster(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const slotId = String(formData.get("slotId") ?? "");
+  if (!slotId) return { error: "Missing roster slot." };
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).removeFromRoster(slotId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports");
+  return {};
+}
