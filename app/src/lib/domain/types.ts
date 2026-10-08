@@ -103,6 +103,47 @@ export interface ContentPiece {
   createdAt: string;
 }
 
+// --- Temp League module -----------------------------------------------------
+
+export type LeagueStatus = "draft" | "active" | "completed";
+export type MatchStatus = "scheduled" | "reported";
+
+export interface League {
+  id: string;
+  name: string;
+  game: string;
+  format: string;
+  status: LeagueStatus;
+  teamCount: number;
+}
+
+export interface LeagueTeam {
+  id: string;
+  name: string;
+  contact: string | null;
+}
+
+export interface Match {
+  id: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  homeTeamName: string;
+  awayTeamName: string;
+  status: MatchStatus;
+  homeScore: number | null;
+  awayScore: number | null;
+}
+
+/** A row in the derived standings table. */
+export interface StandingRow {
+  teamId: string;
+  teamName: string;
+  played: number;
+  won: number;
+  lost: number;
+  points: number; // 3 per win
+}
+
 /** Result wrapper so callers handle success/error explicitly (no throwing across layers). */
 export type Result<T> =
   | { ok: true; data: T }
