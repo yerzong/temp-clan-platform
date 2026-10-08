@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Swords, type LucideIcon } from "lucide-react";
+import { LayoutGrid, Swords, UserPlus, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface NavItem {
@@ -14,6 +14,7 @@ export interface NavItem {
 const ICONS: Record<string, LucideIcon> = {
   overview: LayoutGrid,
   esports: Swords,
+  invitations: UserPlus,
 };
 
 /** Generic vertical section nav. Active item carries the COG accent. */
