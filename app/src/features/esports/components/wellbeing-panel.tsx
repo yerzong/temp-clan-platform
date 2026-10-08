@@ -1,5 +1,6 @@
+import { HeartPulse } from "lucide-react";
 import type { PlayerWellbeing } from "@/lib/domain/types";
-import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { BurnoutBadge } from "./burnout-badge";
 
 function initials(name: string): string {
@@ -14,11 +15,11 @@ function initials(name: string): string {
 export function WellbeingPanel({ players }: { players: PlayerWellbeing[] }) {
   if (players.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-8 text-center text-sm text-tc-fg-tertiary">
-          No players yet. Mark members as players, then record check-ins.
-        </CardContent>
-      </Card>
+      <EmptyState
+        icon={<HeartPulse className="h-4 w-4" />}
+        title="No players to track"
+        description="Mark members as players, then record wellbeing check-ins to monitor burnout."
+      />
     );
   }
 

@@ -7,8 +7,8 @@ import { SideNav, type NavItem } from "@/components/layout/side-nav";
 export const dynamic = "force-dynamic";
 
 const NAV: NavItem[] = [
-  { href: "/dashboard", label: "Overview" },
-  { href: "/dashboard/esports", label: "Esports" },
+  { href: "/dashboard", label: "Overview", icon: "overview" },
+  { href: "/dashboard/esports", label: "Esports", icon: "esports" },
 ];
 
 export default async function DashboardLayout({

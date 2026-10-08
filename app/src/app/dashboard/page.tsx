@@ -5,7 +5,7 @@ import { MemberService } from "@/features/members/member-service";
 import { CreateOrgForm } from "@/features/organizations/components/create-org-form";
 import { RosterPanel } from "@/features/members/components/roster-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Stat } from "@/components/ui/stat";
+import { StatTile } from "@/components/ui/stat";
 
 export const dynamic = "force-dynamic";
 
@@ -62,10 +62,13 @@ export default async function DashboardOverviewPage() {
             {organization.name}
           </h1>
         </div>
-        <div className="flex gap-6">
-          <Stat label="Members" value={list.length} />
-          <Stat label="Players" value={list.filter((m) => m.isPlayer).length} />
-          <Stat
+        <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
+          <StatTile label="Members" value={list.length} tone="accent" />
+          <StatTile
+            label="Players"
+            value={list.filter((m) => m.isPlayer).length}
+          />
+          <StatTile
             label="Creators"
             value={list.filter((m) => m.isCreator).length}
           />

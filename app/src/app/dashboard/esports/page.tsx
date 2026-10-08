@@ -7,9 +7,11 @@ import { CreateTeamForm } from "@/features/esports/components/create-team-form";
 import { AssignRosterForm } from "@/features/esports/components/assign-roster-form";
 import { CheckinForm } from "@/features/esports/components/checkin-form";
 import { WellbeingPanel } from "@/features/esports/components/wellbeing-panel";
+import { Swords } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Stat } from "@/components/ui/stat";
+import { Stat, StatTile } from "@/components/ui/stat";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { RosterPlayer } from "@/lib/domain/types";
 
 export const dynamic = "force-dynamic";
@@ -79,12 +81,17 @@ export default async function EsportsPage() {
             Teams &amp; player sustainability
           </h1>
         </div>
-        <div className="flex gap-6">
-          <Stat label="Teams" value={teams.length} />
-          <Stat label="Players" value={playerOptions.length} />
-          <Stat
+        <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
+          <StatTile label="Teams" value={teams.length} />
+          <StatTile label="Players" value={playerOptions.length} />
+          <StatTile
             label="Need check-in"
             value={wellbeing.filter((p) => p.signal === "elevated").length}
+            tone={
+              wellbeing.some((p) => p.signal === "elevated")
+                ? "accent"
+                : "neutral"
+            }
           />
         </div>
       </div>
@@ -97,11 +104,11 @@ export default async function EsportsPage() {
               Teams
             </h2>
             {teams.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center text-sm text-tc-fg-tertiary">
-                  No teams yet. Create one on the right.
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={<Swords className="h-4 w-4" />}
+                title="No teams formed"
+                description="Create your first squad on the right to start building a roster."
+              />
             ) : (
               <div className="grid gap-2.5">
                 {teams.map((t) => (
