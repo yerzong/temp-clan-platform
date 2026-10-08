@@ -4,9 +4,14 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { ContentService } from "./content-service";
+import { TwitchClient, type TwitchVod } from "./twitch-client";
 import type { ContentPlatform, ContentStatus } from "@/lib/domain/types";
 
 export type ActionResult = { error?: string };
+
+export type FetchVodsResult =
+  | { ok: true; vods: TwitchVod[] }
+  | { ok: false; error: string };
 
 const PLATFORMS: ContentPlatform[] = ["twitch", "youtube", "tiktok", "other"];
 const STATUSES: ContentStatus[] = ["idea", "editing", "review", "published"];
@@ -68,6 +73,51 @@ export async function setContentStatus(
 
   const supabase = await createClient();
   const result = await new ContentService(supabase).setStatus(contentId, status);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/content");
+  return {};
+}
+
+/** Fetch recent VODs for a Twitch channel (does not persist anything). */
+export async function fetchTwitchVods(
+  channel: string
+): Promise<FetchVodsResult> {
+  const clean = channel.trim();
+  if (!clean) return { ok: false, error: "Enter a Twitch channel name." };
+
+  const twitch = new TwitchClient();
+  if (!twitch.isConfigured()) {
+    return {
+      ok: false,
+      error: "Twitch is not connected yet. Add server credentials first.",
+    };
+  }
+
+  const result = await twitch.getChannelVods(clean, 10);
+  if (!result.ok) return { ok: false, error: result.error };
+  return { ok: true, vods: result.data };
+}
+
+/** Import a Twitch VOD as a content piece (status: idea). */
+export async function importTwitchVod(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const title = String(formData.get("title") ?? "").trim();
+  const url = String(formData.get("url") ?? "").trim();
+  if (!title || !url) return { error: "Missing VOD data." };
+
+  const org = await resolveOrgId();
+  if (!org.ok) return { error: org.error };
+
+  const supabase = await createClient();
+  const result = await new ContentService(supabase).createContent(org.orgId, {
+    title,
+    platform: "twitch",
+    url,
+    membershipId: null,
+  });
   if (!result.ok) return { error: result.error };
 
   revalidatePath("/dashboard/content");
