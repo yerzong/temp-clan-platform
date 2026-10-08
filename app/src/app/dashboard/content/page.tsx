@@ -8,6 +8,7 @@ import { ContentBoard } from "@/features/content/components/content-board";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
 import { Clapperboard } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -51,21 +52,17 @@ export default async function ContentPage() {
 
   return (
     <div>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-tc-border-soft pb-6">
-        <div className="flex flex-col gap-1">
-          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-tc-fg-muted">
-            Content
-          </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-tc-fg">
-            Content pipeline
-          </h1>
-        </div>
-        <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
-          <StatTile label="Total" value={pieces.length} tone="accent" />
-          <StatTile label="In progress" value={inProgress} />
-          <StatTile label="Published" value={published} />
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Content"
+        title="Content pipeline"
+        actions={
+          <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
+            <StatTile label="Total" value={pieces.length} tone="accent" />
+            <StatTile label="In progress" value={inProgress} />
+            <StatTile label="Published" value={published} />
+          </div>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <section className="min-w-0">

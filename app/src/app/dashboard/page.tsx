@@ -6,6 +6,7 @@ import { CreateOrgForm } from "@/features/organizations/components/create-org-fo
 import { RosterPanel } from "@/features/members/components/roster-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -53,27 +54,23 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-tc-border-soft pb-6">
-        <div className="flex flex-col gap-1">
-          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-tc-fg-muted">
-            Organization · you are {role}
-          </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-tc-fg">
-            {organization.name}
-          </h1>
-        </div>
-        <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
-          <StatTile label="Members" value={list.length} tone="accent" />
-          <StatTile
-            label="Players"
-            value={list.filter((m) => m.isPlayer).length}
-          />
-          <StatTile
-            label="Creators"
-            value={list.filter((m) => m.isCreator).length}
-          />
-        </div>
-      </div>
+      <PageHeader
+        eyebrow={`Organization · you are ${role}`}
+        title={organization.name}
+        actions={
+          <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
+            <StatTile label="Members" value={list.length} tone="accent" />
+            <StatTile
+              label="Players"
+              value={list.filter((m) => m.isPlayer).length}
+            />
+            <StatTile
+              label="Creators"
+              value={list.filter((m) => m.isCreator).length}
+            />
+          </div>
+        }
+      />
 
       <RosterPanel members={members} />
     </div>

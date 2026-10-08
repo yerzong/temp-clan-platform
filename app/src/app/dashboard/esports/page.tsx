@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Stat, StatTile } from "@/components/ui/stat";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
 import type { RosterPlayer } from "@/lib/domain/types";
 
 export const dynamic = "force-dynamic";
@@ -72,29 +73,25 @@ export default async function EsportsPage() {
 
   return (
     <div>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-tc-border-soft pb-6">
-        <div className="flex flex-col gap-1">
-          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-tc-fg-muted">
-            Esports
-          </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-tc-fg">
-            Teams &amp; player sustainability
-          </h1>
-        </div>
-        <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
-          <StatTile label="Teams" value={teams.length} />
-          <StatTile label="Players" value={playerOptions.length} />
-          <StatTile
-            label="Need check-in"
-            value={wellbeing.filter((p) => p.signal === "elevated").length}
-            tone={
-              wellbeing.some((p) => p.signal === "elevated")
-                ? "accent"
-                : "neutral"
-            }
-          />
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Esports"
+        title="Teams & player sustainability"
+        actions={
+          <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
+            <StatTile label="Teams" value={teams.length} />
+            <StatTile label="Players" value={playerOptions.length} />
+            <StatTile
+              label="Need check-in"
+              value={wellbeing.filter((p) => p.signal === "elevated").length}
+              tone={
+                wellbeing.some((p) => p.signal === "elevated")
+                  ? "accent"
+                  : "neutral"
+              }
+            />
+          </div>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-8">

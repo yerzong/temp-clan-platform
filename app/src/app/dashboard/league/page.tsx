@@ -12,6 +12,7 @@ import { StandingsTable } from "@/features/league/components/standings-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/layout/page-header";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -64,26 +65,22 @@ export default async function LeaguePage({
 
   return (
     <div>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-tc-border-soft pb-6">
-        <div className="flex flex-col gap-1">
-          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-tc-fg-muted">
-            Temp League
-          </span>
-          <h1 className="text-3xl font-semibold tracking-tight text-tc-fg">
-            {current ? current.name : "League manager"}
-          </h1>
-        </div>
-        {current && (
-          <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
-            <StatTile label="Teams" value={teams.length} tone="accent" />
-            <StatTile label="Matches" value={matches.length} />
-            <StatTile
-              label="Reported"
-              value={matches.filter((m) => m.status === "reported").length}
-            />
-          </div>
-        )}
-      </div>
+      <PageHeader
+        eyebrow="Temp League"
+        title={current ? current.name : "League manager"}
+        actions={
+          current ? (
+            <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
+              <StatTile label="Teams" value={teams.length} tone="accent" />
+              <StatTile label="Matches" value={matches.length} />
+              <StatTile
+                label="Reported"
+                value={matches.filter((m) => m.status === "reported").length}
+              />
+            </div>
+          ) : undefined
+        }
+      />
 
       {/* League selector tabs */}
       {leagues.length > 0 && (
