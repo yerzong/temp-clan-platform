@@ -53,3 +53,58 @@ export async function addMember(
   revalidatePath("/dashboard");
   return {};
 }
+
+/** Update an existing member's role and attributes. */
+export async function updateMember(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const membershipId = String(formData.get("membershipId") ?? "");
+  const displayName = String(formData.get("displayName") ?? "").trim();
+  const role = String(formData.get("role") ?? "") as MemberRole;
+  const isCreator = formData.get("isCreator") === "on";
+  const isPlayer = formData.get("isPlayer") === "on";
+
+  if (!membershipId) return { error: "Missing member." };
+  if (!displayName) return { error: "Member name is required." };
+  if (!VALID_ROLES.includes(role)) return { error: "Select a valid role." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  const result = await new MemberService(supabase).updateMember(membershipId, {
+    displayName,
+    role,
+    isCreator,
+    isPlayer,
+  });
+
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard");
+  return {};
+}
+
+/** Remove a member from the organization. */
+export async function deleteMember(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const membershipId = String(formData.get("membershipId") ?? "");
+  if (!membershipId) return { error: "Missing member." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  const result = await new MemberService(supabase).deleteMember(membershipId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard");
+  return {};
+}
