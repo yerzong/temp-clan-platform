@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useEffect } from "react";
 import { createContent, type ActionResult } from "../actions";
+import { useActionToast } from "@/lib/use-action-toast";
 import type { Member } from "@/lib/domain/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,8 @@ export function CreateContentForm({ creators }: { creators: Member[] }) {
     initialState
   );
   const formRef = useRef<HTMLFormElement>(null);
+
+  useActionToast(state, pending, "Content added");
 
   useEffect(() => {
     if (!pending && !state.error) formRef.current?.reset();

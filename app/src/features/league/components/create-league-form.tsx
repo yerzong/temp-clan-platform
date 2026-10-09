@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useEffect } from "react";
 import { createLeague, type ActionResult } from "../actions";
+import { useActionToast } from "@/lib/use-action-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,8 @@ export function CreateLeagueForm() {
     initialState
   );
   const formRef = useRef<HTMLFormElement>(null);
+
+  useActionToast(state, pending, "League created");
 
   useEffect(() => {
     if (!pending && !state.error) formRef.current?.reset();

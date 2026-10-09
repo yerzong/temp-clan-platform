@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createInvitation, type ActionResult } from "../actions";
+import { useActionToast } from "@/lib/use-action-toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
@@ -19,6 +20,8 @@ export function CreateInviteForm() {
     createInvitation,
     initialState
   );
+
+  useActionToast(state, pending, "Invite link generated");
 
   return (
     <form action={formAction} className="flex flex-col gap-4">

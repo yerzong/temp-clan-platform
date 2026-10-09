@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useEffect } from "react";
 import { addMember, type ActionResult } from "../actions";
+import { useActionToast } from "@/lib/use-action-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,8 @@ const ROLES = [
 export function AddMemberForm() {
   const [state, formAction, pending] = useActionState(addMember, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useActionToast(state, pending, "Member added");
 
   // Clear the form after a successful add (no error and not pending).
   useEffect(() => {

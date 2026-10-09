@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useEffect } from "react";
 import { createTeam, type ActionResult } from "../actions";
+import { useActionToast } from "@/lib/use-action-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,8 @@ const FORMATS = [
 export function CreateTeamForm() {
   const [state, formAction, pending] = useActionState(createTeam, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useActionToast(state, pending, "Team created");
 
   useEffect(() => {
     if (!pending && !state.error) formRef.current?.reset();
