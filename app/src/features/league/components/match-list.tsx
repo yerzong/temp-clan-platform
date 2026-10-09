@@ -1,15 +1,43 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState, useTransition } from "react";
+import { Sparkles, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 import type { Match } from "@/lib/domain/types";
-import { reportResult, type ActionResult } from "../actions";
+import { reportResult, getMatchRecap, type ActionResult } from "../actions";
 import { EmptyState } from "@/components/ui/empty-state";
 
 const initialState: ActionResult = {};
 
-function MatchRow({ match }: { match: Match }) {
-  const [, formAction, pending] = useActionState(reportResult, initialState);
+function MatchRow({ match, leagueId }: { match: Match; leagueId: string }) {
+  const [state, formAction, pending] = useActionState(
+    reportResult,
+    initialState
+  );
   const reported = match.status === "reported";
+
+  const [recap, setRecap] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [loadingRecap, startRecap] = useTransition();
+
+  function loadRecap() {
+    startRecap(async () => {
+      const res = await getMatchRecap(leagueId, match.id);
+      if (res.ok && res.recap) {
+        setRecap(res.recap);
+      } else if (!res.ok) {
+        toast.error(res.error);
+      }
+    });
+  }
+
+  async function copyRecap() {
+    if (!recap) return;
+    await navigator.clipboard.writeText(recap);
+    setCopied(true);
+    toast.success("Recap copied");
+    setTimeout(() => setCopied(false), 1500);
+  }
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-tc-border bg-card p-3">
@@ -55,11 +83,54 @@ function MatchRow({ match }: { match: Match }) {
           </button>
         </form>
       )}
+
+      {reported && (
+        <div className="flex flex-col gap-2 border-t border-tc-border-soft pt-2">
+          {!recap ? (
+            <button
+              type="button"
+              onClick={loadRecap}
+              disabled={loadingRecap}
+              className="flex items-center justify-center gap-1.5 rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary transition-colors hover:border-tc-accent hover:text-tc-fg disabled:opacity-50"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {loadingRecap ? "Generating..." : "Generate recap"}
+            </button>
+          ) : (
+            <div className="flex flex-col gap-2 rounded-md border border-tc-border-soft bg-[hsl(var(--tc-canvas))] p-3">
+              <pre className="whitespace-pre-wrap font-sans text-xs leading-relaxed text-tc-fg-secondary">
+                {recap}
+              </pre>
+              <button
+                type="button"
+                onClick={copyRecap}
+                className="flex items-center justify-center gap-1.5 rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary transition-colors hover:border-tc-accent hover:text-tc-fg"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" /> Copy recap
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-export function MatchList({ matches }: { matches: Match[] }) {
+export function MatchList({
+  matches,
+  leagueId,
+}: {
+  matches: Match[];
+  leagueId: string;
+}) {
   if (matches.length === 0) {
     return (
       <EmptyState
@@ -71,7 +142,7 @@ export function MatchList({ matches }: { matches: Match[] }) {
   return (
     <div className="flex flex-col gap-2.5">
       {matches.map((m) => (
-        <MatchRow key={m.id} match={m} />
+        <MatchRow key={m.id} match={m} leagueId={leagueId} />
       ))}
     </div>
   );

@@ -125,7 +125,7 @@ export default async function LeaguePage({
                 <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
                   Matches
                 </h2>
-                <MatchList matches={matches} />
+                <MatchList matches={matches} leagueId={current.id} />
               </section>
             </>
           )}
