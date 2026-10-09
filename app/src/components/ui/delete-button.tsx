@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 type DeleteState = { error?: string };
@@ -39,8 +40,10 @@ export function DeleteButton({
       const res = await action({}, fd);
       if (res?.error) {
         setError(res.error);
+        toast.error(res.error);
       } else {
         setConfirming(false);
+        toast.success("Removed");
       }
     });
   }
