@@ -175,3 +175,26 @@ export async function removeLeagueTeam(
   revalidatePath("/dashboard/league");
   return {};
 }
+
+export async function updateLeague(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const leagueId = String(formData.get("leagueId") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const format = String(formData.get("format") ?? "versus-4v4");
+
+  if (!leagueId) return { error: "Missing league." };
+  if (!name) return { error: "League name is required." };
+  if (!VALID_FORMATS.includes(format)) return { error: "Pick a valid format." };
+
+  const supabase = await createClient();
+  const result = await new LeagueService(supabase).updateLeague(leagueId, {
+    name,
+    format,
+  });
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/league");
+  return {};
+}

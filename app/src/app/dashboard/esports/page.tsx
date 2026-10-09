@@ -7,14 +7,12 @@ import { CreateTeamForm } from "@/features/esports/components/create-team-form";
 import { AssignRosterForm } from "@/features/esports/components/assign-roster-form";
 import { CheckinForm } from "@/features/esports/components/checkin-form";
 import { WellbeingPanel } from "@/features/esports/components/wellbeing-panel";
+import { TeamCard } from "@/features/esports/components/team-card";
 import { Swords } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Stat, StatTile } from "@/components/ui/stat";
+import { StatTile } from "@/components/ui/stat";
 import { EmptyState } from "@/components/ui/empty-state";
-import { DeleteButton } from "@/components/ui/delete-button";
 import { PageHeader } from "@/components/layout/page-header";
-import { deleteTeam } from "@/features/esports/actions";
 import type { RosterPlayer } from "@/lib/domain/types";
 
 export const dynamic = "force-dynamic";
@@ -111,44 +109,7 @@ export default async function EsportsPage() {
             ) : (
               <div className="grid gap-2.5">
                 {teams.map((t) => (
-                  <div
-                    key={t.id}
-                    className="rounded-lg border border-tc-border bg-card p-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-tc-fg">{t.name}</span>
-                        <Badge>{t.format}</Badge>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Stat label="Roster" value={t.rosterCount} />
-                        <DeleteButton
-                          action={deleteTeam}
-                          idName="teamId"
-                          idValue={t.id}
-                          label="Delete team"
-                        />
-                      </div>
-                    </div>
-
-                    {t.roster.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-1.5 border-t border-tc-border-soft pt-3">
-                        {t.roster.map((p) => (
-                          <span
-                            key={p.slotId}
-                            className="inline-flex items-center gap-1.5 rounded border border-tc-border bg-tc-surface-2 px-2 py-1 text-xs text-tc-fg-secondary"
-                          >
-                            {p.displayName}
-                            {p.position && (
-                              <span className="font-mono text-[10px] uppercase text-tc-fg-muted">
-                                {p.position}
-                              </span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <TeamCard key={t.id} team={t} />
                 ))}
               </div>
             )}

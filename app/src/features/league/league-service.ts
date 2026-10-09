@@ -84,6 +84,19 @@ export class LeagueService {
     return { ok: true, data: data.id as string };
   }
 
+  /** Rename / re-format a league. */
+  async updateLeague(
+    leagueId: string,
+    input: { name: string; format: string }
+  ): Promise<Result<null>> {
+    const { error } = await this.supabase
+      .from("leagues")
+      .update({ name: input.name, format: input.format })
+      .eq("id", leagueId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
   /** Delete a league (cascades its teams and matches). */
   async deleteLeague(leagueId: string): Promise<Result<null>> {
     const { error } = await this.supabase
