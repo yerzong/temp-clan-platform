@@ -74,6 +74,19 @@ export class EsportsService {
     return { ok: true, data: data.id as string };
   }
 
+  /** Rename / re-format a team. */
+  async updateTeam(
+    teamId: string,
+    input: { name: string; format: string }
+  ): Promise<Result<null>> {
+    const { error } = await this.supabase
+      .from("teams")
+      .update({ name: input.name, format: input.format })
+      .eq("id", teamId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
   /** Delete a team (cascades its roster slots). */
   async deleteTeam(teamId: string): Promise<Result<null>> {
     const { error } = await this.supabase

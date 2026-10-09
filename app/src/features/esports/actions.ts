@@ -136,3 +136,26 @@ export async function removeFromRoster(
   revalidatePath("/dashboard/esports");
   return {};
 }
+
+export async function updateTeam(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const teamId = String(formData.get("teamId") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const format = String(formData.get("format") ?? "versus-4v4");
+
+  if (!teamId) return { error: "Missing team." };
+  if (!name) return { error: "Team name is required." };
+  if (!VALID_FORMATS.includes(format)) return { error: "Pick a valid format." };
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).updateTeam(teamId, {
+    name,
+    format,
+  });
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports");
+  return {};
+}
