@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useActionState, useEffect, useTransition } from "react";
 import { Pencil, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 import type { Member } from "@/lib/domain/types";
+import { useActionToast } from "@/lib/use-action-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,10 +42,28 @@ export function MemberCard({ member }: { member: Member }) {
     updateMember,
     initialState
   );
-  const [deleteState, deleteAction, deleting] = useActionState(
-    deleteMember,
-    initialState
-  );
+  const [deleting, startDelete] = useTransition();
+
+  useActionToast(updateState, updating, "Member updated");
+
+  function doDelete() {
+    startDelete(async () => {
+      const fd = new FormData();
+      fd.set("membershipId", member.membershipId);
+      const res = await deleteMember({}, fd);
+      if (res?.error) {
+        toast.error(res.error);
+      } else {
+        toast.success("Member removed");
+      }
+    });
+  }
+
+  // Close the edit form after a successful save.
+  useEffect(() => {
+    if (!updating && !updateState.error) setEditing(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updating]);
 
   const isOwner = member.role === "owner";
 
@@ -170,18 +190,14 @@ export function MemberCard({ member }: { member: Member }) {
       {/* Actions */}
       <div className="flex shrink-0 items-center gap-1">
         {confirmingDelete ? (
-          <form action={deleteAction} className="flex items-center gap-1.5">
-            <input
-              type="hidden"
-              name="membershipId"
-              value={member.membershipId}
-            />
+          <div className="flex items-center gap-1.5">
             <span className="text-[11px] text-tc-fg-tertiary">Remove?</span>
             <Button
-              type="submit"
+              type="button"
               variant="destructive"
               size="sm"
               disabled={deleting}
+              onClick={doDelete}
             >
               {deleting ? "..." : "Yes"}
             </Button>
@@ -190,10 +206,11 @@ export function MemberCard({ member }: { member: Member }) {
               variant="ghost"
               size="sm"
               onClick={() => setConfirmingDelete(false)}
+              disabled={deleting}
             >
               No
             </Button>
-          </form>
+          </div>
         ) : (
           <>
             <button
@@ -218,11 +235,6 @@ export function MemberCard({ member }: { member: Member }) {
               {member.status}
             </span>
           </>
-        )}
-        {deleteState.error && (
-          <span className="text-[11px] text-[hsl(var(--tc-destructive))]">
-            {deleteState.error}
-          </span>
         )}
       </div>
     </div>
