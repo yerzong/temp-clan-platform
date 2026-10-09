@@ -195,3 +195,30 @@ export async function deleteContent(
   revalidatePath("/dashboard/content");
   return {};
 }
+
+export async function updateContent(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const contentId = String(formData.get("contentId") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const platform = String(
+    formData.get("platform") ?? "other"
+  ) as ContentPlatform;
+  const url = String(formData.get("url") ?? "").trim() || null;
+
+  if (!contentId) return { error: "Missing content." };
+  if (!title) return { error: "Title is required." };
+  if (!PLATFORMS.includes(platform)) return { error: "Pick a valid platform." };
+
+  const supabase = await createClient();
+  const result = await new ContentService(supabase).updateContent(contentId, {
+    title,
+    platform,
+    url,
+  });
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/content");
+  return {};
+}

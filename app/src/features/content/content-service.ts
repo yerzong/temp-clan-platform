@@ -84,6 +84,20 @@ export class ContentService {
     return { ok: true, data: null };
   }
 
+  /** Update a content piece's title, platform, and link. */
+  async updateContent(
+    contentId: string,
+    input: { title: string; platform: ContentPlatform; url: string | null }
+  ): Promise<Result<null>> {
+    const { error } = await this.supabase
+      .from("content_pieces")
+      .update({ title: input.title, platform: input.platform, url: input.url })
+      .eq("id", contentId);
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
   /** Delete a content piece. */
   async deleteContent(contentId: string): Promise<Result<null>> {
     const { error } = await this.supabase
