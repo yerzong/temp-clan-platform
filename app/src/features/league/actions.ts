@@ -98,6 +98,26 @@ export async function createMatch(
   return {};
 }
 
+export type RecapResult =
+  | { ok: true; recap: string | null }
+  | { ok: false; error: string };
+
+/** Build a ready-to-post recap for a reported match. */
+export async function getMatchRecap(
+  leagueId: string,
+  matchId: string
+): Promise<RecapResult> {
+  if (!leagueId || !matchId) return { ok: false, error: "Missing match." };
+
+  const supabase = await createClient();
+  const result = await new LeagueService(supabase).buildMatchRecap(
+    leagueId,
+    matchId
+  );
+  if (!result.ok) return { ok: false, error: result.error };
+  return { ok: true, recap: result.data };
+}
+
 export async function reportResult(
   _prev: ActionResult,
   formData: FormData

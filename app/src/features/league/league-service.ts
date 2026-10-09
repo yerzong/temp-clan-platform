@@ -171,6 +171,67 @@ export class LeagueService {
   }
 
   /**
+   * Build a ready-to-post recap for a reported match, with standings context.
+   * Pure text generation — no AI, no external calls. Returns null if the match
+   * is not reported yet.
+   */
+  async buildMatchRecap(
+    leagueId: string,
+    matchId: string
+  ): Promise<Result<string | null>> {
+    const matchesRes = await this.listMatches(leagueId);
+    if (!matchesRes.ok) return matchesRes;
+
+    const match = matchesRes.data.find((m) => m.id === matchId);
+    if (!match) return { ok: false, error: "Match not found." };
+    if (
+      match.status !== "reported" ||
+      match.homeScore === null ||
+      match.awayScore === null
+    ) {
+      return { ok: true, data: null };
+    }
+
+    const standingsRes = await this.getStandings(leagueId);
+    const standings = standingsRes.ok ? standingsRes.data : [];
+
+    const home = match.homeTeamName;
+    const away = match.awayTeamName;
+    const hs = match.homeScore;
+    const as = match.awayScore;
+    const winner = hs > as ? home : as > hs ? away : null;
+
+    const headline = winner
+      ? `${winner} takes the win!`
+      : `${home} and ${away} draw`;
+
+    // Standings positions of the two teams, if available.
+    const posLine = standings
+      .filter((r) => r.teamName === home || r.teamName === away)
+      .map((r) => {
+        const pos = standings.findIndex((s) => s.teamId === r.teamId) + 1;
+        return `#${pos} ${r.teamName} — ${r.points} pts (${r.won}W ${r.lost}L)`;
+      })
+      .join("\n");
+
+    const recap = [
+      `🎮 MATCH RESULT`,
+      ``,
+      `${home}  ${hs} — ${as}  ${away}`,
+      `${headline}`,
+      ``,
+      posLine ? `📊 Standings:\n${posLine}` : "",
+      ``,
+      `#TempLeague #GearsEDay`,
+    ]
+      .filter((line) => line !== null)
+      .join("\n")
+      .trim();
+
+    return { ok: true, data: recap };
+  }
+
+  /**
    * Derive the standings table from reported matches. Business logic lives here.
    * 3 points per win, 0 per loss (draws not expected in Gears but handled as 0).
    */
