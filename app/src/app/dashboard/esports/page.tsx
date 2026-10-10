@@ -41,7 +41,7 @@ export default async function EsportsPage() {
     return (
       <Card className="mx-auto max-w-md">
         <CardContent className="p-6 text-center text-sm text-tc-fg-tertiary">
-          Create your organization first (Overview tab).
+          Primero crea tu organización (pestaña Resumen).
         </CardContent>
       </Card>
     );

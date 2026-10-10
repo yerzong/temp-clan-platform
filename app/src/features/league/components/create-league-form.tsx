@@ -31,17 +31,17 @@ export function CreateLeagueForm() {
   return (
     <form ref={formRef} action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="league-name">League name</Label>
+        <Label htmlFor="league-name">Nombre de la liga</Label>
         <Input
           id="league-name"
           name="name"
           required
-          placeholder="Temp League Season 1"
+          placeholder="Temp League Temporada 1"
           autoComplete="off"
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="league-format">Format</Label>
+        <Label htmlFor="league-format">Formato</Label>
         <select
           id="league-format"
           name="format"
@@ -61,7 +61,7 @@ export function CreateLeagueForm() {
         </p>
       )}
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? "Creating..." : "Create league"}
+        {pending ? "Creando..." : "Crear liga"}
       </Button>
     </form>
   );

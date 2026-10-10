@@ -53,14 +53,14 @@ export function LeagueSettings({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">League settings</CardTitle>
+        <CardTitle className="text-base">Ajustes de la liga</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {editing ? (
           <form action={updateAction} className="flex flex-col gap-3">
             <input type="hidden" name="leagueId" value={leagueId} />
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="league-edit-name">Name</Label>
+              <Label htmlFor="league-edit-name">Nombre</Label>
               <Input
                 id="league-edit-name"
                 name="name"
@@ -69,7 +69,7 @@ export function LeagueSettings({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="league-edit-format">Format</Label>
+              <Label htmlFor="league-edit-format">Formato</Label>
               <select
                 id="league-edit-format"
                 name="format"
@@ -90,7 +90,7 @@ export function LeagueSettings({
             )}
             <div className="flex gap-2">
               <Button type="submit" size="sm" disabled={updating}>
-                {updating ? "Saving..." : "Save"}
+                {updating ? "Guardando..." : "Guardar"}
               </Button>
               <Button
                 type="button"
@@ -98,14 +98,14 @@ export function LeagueSettings({
                 size="sm"
                 onClick={() => setEditing(false)}
               >
-                Cancel
+                Cancelar
               </Button>
             </div>
           </form>
         ) : (
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm text-tc-fg-secondary">
-              Rename or change the format.
+              Renombra o cambia el formato.
             </span>
             <Button
               type="button"
@@ -113,14 +113,14 @@ export function LeagueSettings({
               size="sm"
               onClick={() => setEditing(true)}
             >
-              Edit
+              Editar
             </Button>
           </div>
         )}
 
         <div className="flex items-center justify-between gap-3 border-t border-tc-border-soft pt-4">
           <span className="text-[11px] text-tc-fg-tertiary">
-            Delete this league, its teams and matches.
+            Elimina esta liga, sus equipos y partidas.
           </span>
           {confirmingDelete ? (
             <div className="flex items-center gap-1.5">
@@ -131,7 +131,7 @@ export function LeagueSettings({
                 disabled={deleting}
                 onClick={doDelete}
               >
-                {deleting ? "..." : "Delete"}
+                {deleting ? "..." : "Eliminar"}
               </Button>
               <Button
                 type="button"
@@ -150,7 +150,7 @@ export function LeagueSettings({
               onClick={() => setConfirmingDelete(true)}
               className="text-[hsl(var(--tc-destructive))]"
             >
-              Delete
+              Eliminar
             </Button>
           )}
         </div>

@@ -6,8 +6,8 @@ export function StandingsTable({ rows }: { rows: StandingRow[] }) {
   if (rows.length === 0) {
     return (
       <EmptyState
-        title="No standings yet"
-        description="Enroll teams and report match results to build the table."
+        title="Sin tabla aún"
+        description="Inscribe equipos y reporta resultados para armar la tabla."
       />
     );
   }
@@ -18,10 +18,10 @@ export function StandingsTable({ rows }: { rows: StandingRow[] }) {
         <thead>
           <tr className="border-b border-tc-border bg-tc-surface-2 text-left font-mono text-[11px] uppercase tracking-wider text-tc-fg-muted">
             <th className="px-3 py-2 font-medium">#</th>
-            <th className="px-3 py-2 font-medium">Team</th>
+            <th className="px-3 py-2 font-medium">Equipo</th>
+            <th className="px-3 py-2 text-center font-medium">PJ</th>
+            <th className="px-3 py-2 text-center font-medium">G</th>
             <th className="px-3 py-2 text-center font-medium">P</th>
-            <th className="px-3 py-2 text-center font-medium">W</th>
-            <th className="px-3 py-2 text-center font-medium">L</th>
             <th className="px-3 py-2 text-center font-medium">Pts</th>
           </tr>
         </thead>

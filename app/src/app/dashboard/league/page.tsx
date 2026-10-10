@@ -37,7 +37,7 @@ export default async function LeaguePage({
     return (
       <Card className="mx-auto max-w-md">
         <CardContent className="p-6 text-center text-sm text-tc-fg-tertiary">
-          Create your organization first (Overview tab).
+          Primero crea tu organización (pestaña Resumen).
         </CardContent>
       </Card>
     );
@@ -73,10 +73,10 @@ export default async function LeaguePage({
         actions={
           current ? (
             <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
-              <StatTile label="Teams" value={teams.length} tone="accent" />
-              <StatTile label="Matches" value={matches.length} />
+              <StatTile label="Equipos" value={teams.length} tone="accent" />
+              <StatTile label="Partidas" value={matches.length} />
               <StatTile
-                label="Reported"
+                label="Reportadas"
                 value={matches.filter((m) => m.status === "reported").length}
               />
             </div>
@@ -109,21 +109,21 @@ export default async function LeaguePage({
           {!current ? (
             <EmptyState
               icon={<Trophy className="h-4 w-4" />}
-              title="No league yet"
-              description="Create your first league on the right to enroll teams and run fixtures."
+              title="Sin ligas aún"
+              description="Crea tu primera liga a la derecha para inscribir equipos y correr partidas."
             />
           ) : (
             <>
               <section className="flex flex-col gap-3">
                 <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
-                  Standings
+                  Tabla de posiciones
                 </h2>
                 <StandingsTable rows={standings} />
               </section>
 
               <section className="flex flex-col gap-3">
                 <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
-                  Matches
+                  Partidas
                 </h2>
                 <MatchList matches={matches} leagueId={current.id} />
               </section>
@@ -134,7 +134,7 @@ export default async function LeaguePage({
         <aside className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">New league</CardTitle>
+              <CardTitle className="text-base">Nueva liga</CardTitle>
             </CardHeader>
             <CardContent>
               <CreateLeagueForm />
@@ -145,9 +145,9 @@ export default async function LeaguePage({
             <>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Enroll team</CardTitle>
+                  <CardTitle className="text-base">Inscribir equipo</CardTitle>
                   <p className="text-sm text-tc-fg-tertiary">
-                    Add an external team to {current.name}.
+                    Agrega un equipo externo a {current.name}.
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -157,7 +157,7 @@ export default async function LeaguePage({
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Schedule match</CardTitle>
+                  <CardTitle className="text-base">Programar partida</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CreateMatchForm leagueId={current.id} teams={teams} />

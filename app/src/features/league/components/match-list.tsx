@@ -35,7 +35,7 @@ function MatchRow({ match, leagueId }: { match: Match; leagueId: string }) {
     if (!recap) return;
     await navigator.clipboard.writeText(recap);
     setCopied(true);
-    toast.success("Recap copied");
+    toast.success("Recap copiado");
     setTimeout(() => setCopied(false), 1500);
   }
 
@@ -79,7 +79,7 @@ function MatchRow({ match, leagueId }: { match: Match; leagueId: string }) {
             disabled={pending}
             className="h-8 rounded-md border border-tc-border bg-tc-surface-2 px-3 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary transition-colors hover:border-tc-accent hover:text-tc-fg disabled:opacity-50"
           >
-            Report
+            Reportar
           </button>
         </form>
       )}
@@ -94,7 +94,7 @@ function MatchRow({ match, leagueId }: { match: Match; leagueId: string }) {
               className="flex items-center justify-center gap-1.5 rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary transition-colors hover:border-tc-accent hover:text-tc-fg disabled:opacity-50"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              {loadingRecap ? "Generating..." : "Generate recap"}
+              {loadingRecap ? "Generando..." : "Generar recap"}
             </button>
           ) : (
             <div className="flex flex-col gap-2 rounded-md border border-tc-border-soft bg-[hsl(var(--tc-canvas))] p-3">
@@ -108,11 +108,11 @@ function MatchRow({ match, leagueId }: { match: Match; leagueId: string }) {
               >
                 {copied ? (
                   <>
-                    <Check className="h-3.5 w-3.5" /> Copied
+                    <Check className="h-3.5 w-3.5" /> Copiado
                   </>
                 ) : (
                   <>
-                    <Copy className="h-3.5 w-3.5" /> Copy recap
+                    <Copy className="h-3.5 w-3.5" /> Copiar recap
                   </>
                 )}
               </button>
@@ -134,8 +134,8 @@ export function MatchList({
   if (matches.length === 0) {
     return (
       <EmptyState
-        title="No matches scheduled"
-        description="Schedule a fixture between two enrolled teams."
+        title="Sin partidas programadas"
+        description="Programa un enfrentamiento entre dos equipos inscritos."
       />
     );
   }
