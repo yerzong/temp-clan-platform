@@ -76,6 +76,7 @@ export default async function EsportsPage() {
       <PageHeader
         eyebrow="Esports"
         title="Teams & player sustainability"
+        subtitle="Create squads, assign players to rosters, and log wellbeing check-ins to catch burnout early."
         actions={
           <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
             <StatTile label="Teams" value={teams.length} />

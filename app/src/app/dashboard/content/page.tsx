@@ -57,6 +57,7 @@ export default async function ContentPage() {
       <PageHeader
         eyebrow="Content"
         title="Content pipeline"
+        subtitle="Track clips from idea to published. Import VODs from Twitch or pull a channel's top highlights."
         actions={
           <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
             <StatTile label="Total" value={pieces.length} tone="accent" />

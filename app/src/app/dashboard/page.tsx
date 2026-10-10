@@ -81,6 +81,7 @@ export default async function DashboardOverviewPage() {
       <PageHeader
         eyebrow={`Organization · you are ${role}`}
         title={organization.name}
+        subtitle="Your command center. Jump into any area below, or manage your roster at the bottom."
         actions={
           <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
             <StatTile label="Members" value={members.length} tone="accent" />
@@ -97,7 +98,7 @@ export default async function DashboardOverviewPage() {
       />
 
       {/* Cross-module snapshot */}
-      <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="tc-stagger mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           href="/dashboard/esports"
           label="Teams"

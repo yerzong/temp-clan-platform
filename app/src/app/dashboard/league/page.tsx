@@ -69,6 +69,7 @@ export default async function LeaguePage({
       <PageHeader
         eyebrow="Temp League"
         title={current ? current.name : "League manager"}
+        subtitle="Run a league with external teams: enroll teams, schedule matches, report results, and the standings update automatically."
         actions={
           current ? (
             <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
