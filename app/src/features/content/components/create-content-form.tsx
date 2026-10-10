@@ -24,7 +24,7 @@ export function CreateContentForm({ creators }: { creators: Member[] }) {
   );
   const formRef = useRef<HTMLFormElement>(null);
 
-  useActionToast(state, pending, "Content added");
+  useActionToast(state, pending, "Contenido agregado");
 
   useEffect(() => {
     if (!pending && !state.error) formRef.current?.reset();
@@ -34,18 +34,18 @@ export function CreateContentForm({ creators }: { creators: Member[] }) {
   return (
     <form ref={formRef} action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="content-title">Title</Label>
+        <Label htmlFor="content-title">Título</Label>
         <Input
           id="content-title"
           name="title"
           required
-          placeholder="Clutch 1v3 on Gridlock"
+          placeholder="Clutch 1v3 en Gridlock"
           autoComplete="off"
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="content-platform">Platform</Label>
+        <Label htmlFor="content-platform">Plataforma</Label>
         <select
           id="content-platform"
           name="platform"
@@ -61,14 +61,14 @@ export function CreateContentForm({ creators }: { creators: Member[] }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="content-creator">Creator (optional)</Label>
+        <Label htmlFor="content-creator">Creador (opcional)</Label>
         <select
           id="content-creator"
           name="membershipId"
           defaultValue=""
           className="h-10 w-full rounded-md border border-tc-border bg-input px-3 text-sm text-tc-fg outline-none focus-visible:border-tc-accent focus-visible:ring-1 focus-visible:ring-ring"
         >
-          <option value="">— Unassigned —</option>
+          <option value="">— Sin asignar —</option>
           {creators.map((c) => (
             <option key={c.membershipId} value={c.membershipId}>
               {c.displayName}
@@ -78,7 +78,7 @@ export function CreateContentForm({ creators }: { creators: Member[] }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="content-url">Link (optional)</Label>
+        <Label htmlFor="content-url">Enlace (opcional)</Label>
         <Input
           id="content-url"
           name="url"
@@ -94,7 +94,7 @@ export function CreateContentForm({ creators }: { creators: Member[] }) {
       )}
 
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? "Adding..." : "Add content"}
+        {pending ? "Agregando..." : "Agregar contenido"}
       </Button>
     </form>
   );
