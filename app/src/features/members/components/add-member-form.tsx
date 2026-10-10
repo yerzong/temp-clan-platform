@@ -16,17 +16,21 @@ const ROLES = [
   { value: "admin", label: "Admin" },
 ];
 
-export function AddMemberForm() {
+export function AddMemberForm({ onSuccess }: { onSuccess?: () => void }) {
   const [state, formAction, pending] = useActionState(addMember, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const wasPending = useRef(false);
 
   useActionToast(state, pending, "Miembro agregado");
 
-  // Clear the form after a successful add (no error and not pending).
+  // Only react once a real submit has gone from pending -> done without error.
+  // Guards against firing on the initial mount (where pending is already false).
   useEffect(() => {
-    if (!pending && !state.error) {
+    if (wasPending.current && !pending && !state.error) {
       formRef.current?.reset();
+      onSuccess?.();
     }
+    wasPending.current = pending;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending]);
 

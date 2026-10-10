@@ -171,10 +171,39 @@ body {
 .tc-stagger > *:nth-child(4) { animation-delay: 0.18s; }
 .tc-stagger > *:nth-child(5) { animation-delay: 0.23s; }
 
+/* --- Sheet / drawer: overlay fade + panel slide from the right --- */
+@keyframes tc-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tc-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.tc-overlay-in {
+  animation: tc-overlay-in 0.2s ease both;
+}
+
+.tc-sheet-in {
+  animation: tc-sheet-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tc-animate-in,
   .tc-fade,
-  .tc-stagger > * {
+  .tc-stagger > *,
+  .tc-overlay-in,
+  .tc-sheet-in {
     animation: none;
   }
 }
