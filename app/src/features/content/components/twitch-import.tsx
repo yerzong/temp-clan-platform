@@ -28,7 +28,8 @@ export function TwitchImport() {
       const res = await fetchTwitchVods(channel);
       if (res.ok) {
         setVods(res.vods);
-        if (res.vods.length === 0) setError("No VODs found for that channel.");
+        if (res.vods.length === 0)
+          setError("No se encontraron VODs para ese canal.");
       } else {
         setVods(null);
         setError(res.error);
@@ -53,13 +54,13 @@ export function TwitchImport() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="twitch-channel">Twitch channel</Label>
+        <Label htmlFor="twitch-channel">Canal de Twitch</Label>
         <div className="flex gap-2">
           <Input
             id="twitch-channel"
             value={channel}
             onChange={(e) => setChannel(e.target.value)}
-            placeholder="e.g. shroud"
+            placeholder="ej. shroud"
             autoComplete="off"
             onKeyDown={(e) => e.key === "Enter" && search()}
           />
@@ -70,7 +71,7 @@ export function TwitchImport() {
             className="shrink-0 gap-1.5"
           >
             <Video className="h-4 w-4" />
-            {searching ? "..." : "Fetch"}
+            {searching ? "..." : "Buscar"}
           </Button>
         </div>
       </div>
@@ -107,11 +108,11 @@ export function TwitchImport() {
                 >
                   {done ? (
                     <>
-                      <Check className="h-3.5 w-3.5" /> Added
+                      <Check className="h-3.5 w-3.5" /> Agregado
                     </>
                   ) : (
                     <>
-                      <Download className="h-3.5 w-3.5" /> Import
+                      <Download className="h-3.5 w-3.5" /> Importar
                     </>
                   )}
                 </Button>
