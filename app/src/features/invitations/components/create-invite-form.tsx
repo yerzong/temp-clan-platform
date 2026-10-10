@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 const initialState: ActionResult = {};
 
 const ROLES = [
-  { value: "player", label: "Player" },
-  { value: "creator", label: "Creator" },
+  { value: "player", label: "Jugador" },
+  { value: "creator", label: "Creador" },
   { value: "staff", label: "Staff" },
   { value: "admin", label: "Admin" },
 ];
@@ -21,12 +21,12 @@ export function CreateInviteForm() {
     initialState
   );
 
-  useActionToast(state, pending, "Invite link generated");
+  useActionToast(state, pending, "Enlace de invitación generado");
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="invite-role">Invite as</Label>
+        <Label htmlFor="invite-role">Invitar como</Label>
         <select
           id="invite-role"
           name="role"
@@ -48,7 +48,7 @@ export function CreateInviteForm() {
       )}
 
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? "Generating..." : "Generate invite link"}
+        {pending ? "Generando..." : "Generar enlace de invitación"}
       </Button>
     </form>
   );

@@ -24,21 +24,21 @@ export function AddTeamForm({ leagueId }: { leagueId: string }) {
     <form ref={formRef} action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="leagueId" value={leagueId} />
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="team-name">Team name</Label>
+        <Label htmlFor="team-name">Nombre del equipo</Label>
         <Input
           id="team-name"
           name="name"
           required
-          placeholder="External squad name"
+          placeholder="Nombre del squad externo"
           autoComplete="off"
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="team-contact">Contact (optional)</Label>
+        <Label htmlFor="team-contact">Contacto (opcional)</Label>
         <Input
           id="team-contact"
           name="contact"
-          placeholder="Captain Discord / email"
+          placeholder="Discord / email del capitán"
           autoComplete="off"
         />
       </div>
@@ -48,7 +48,7 @@ export function AddTeamForm({ leagueId }: { leagueId: string }) {
         </p>
       )}
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? "Adding..." : "Enroll team"}
+        {pending ? "Agregando..." : "Inscribir equipo"}
       </Button>
     </form>
   );

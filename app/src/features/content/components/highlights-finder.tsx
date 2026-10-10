@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const RANGES = [
-  { value: 7, label: "7 days" },
-  { value: 30, label: "30 days" },
-  { value: 0, label: "All time" },
+  { value: 7, label: "7 días" },
+  { value: 30, label: "30 días" },
+  { value: 0, label: "Todo" },
 ];
 
 function compactNumber(n: number): string {
@@ -35,7 +35,7 @@ export function HighlightsFinder() {
       if (res.ok) {
         setClips(res.clips);
         if (res.clips.length === 0)
-          setError("No clips found for that channel/range.");
+          setError("No se encontraron clips para ese canal/rango.");
       } else {
         setClips(null);
         setError(res.error);
@@ -61,18 +61,18 @@ export function HighlightsFinder() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex flex-1 flex-col gap-1.5">
-          <Label htmlFor="hl-channel">Twitch channel</Label>
+          <Label htmlFor="hl-channel">Canal de Twitch</Label>
           <Input
             id="hl-channel"
             value={channel}
             onChange={(e) => setChannel(e.target.value)}
-            placeholder="e.g. shroud"
+            placeholder="ej. shroud"
             autoComplete="off"
             onKeyDown={(e) => e.key === "Enter" && search()}
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="hl-range">Range</Label>
+          <Label htmlFor="hl-range">Rango</Label>
           <select
             id="hl-range"
             value={days}
@@ -93,7 +93,7 @@ export function HighlightsFinder() {
           className="shrink-0 gap-1.5"
         >
           <Flame className="h-4 w-4" />
-          {searching ? "..." : "Find highlights"}
+          {searching ? "..." : "Buscar highlights"}
         </Button>
       </div>
 
@@ -142,11 +142,11 @@ export function HighlightsFinder() {
                 >
                   {done ? (
                     <>
-                      <Check className="h-3.5 w-3.5" /> Added
+                      <Check className="h-3.5 w-3.5" /> Agregado
                     </>
                   ) : (
                     <>
-                      <Download className="h-3.5 w-3.5" /> Import
+                      <Download className="h-3.5 w-3.5" /> Importar
                     </>
                   )}
                 </Button>

@@ -56,13 +56,13 @@ export default async function ContentPage() {
     <div>
       <PageHeader
         eyebrow="Content"
-        title="Content pipeline"
-        subtitle="Track clips from idea to published. Import VODs from Twitch or pull a channel's top highlights."
+        title="Pipeline de contenido"
+        subtitle="Rastrea clips de idea a publicado. Importa VODs de Twitch o trae los mejores highlights de un canal."
         actions={
           <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
             <StatTile label="Total" value={pieces.length} tone="accent" />
-            <StatTile label="In progress" value={inProgress} />
-            <StatTile label="Published" value={published} />
+            <StatTile label="En progreso" value={inProgress} />
+            <StatTile label="Publicados" value={published} />
           </div>
         }
       />
@@ -71,16 +71,16 @@ export default async function ContentPage() {
       <details className="group mb-6 rounded-lg border border-tc-border bg-card">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-5 py-4">
           <div className="flex flex-col">
-            <span className="font-semibold text-tc-fg">Add content</span>
+            <span className="font-semibold text-tc-fg">Agregar contenido</span>
             <span className="text-sm text-tc-fg-tertiary">
-              Track a clip or video through the pipeline.
+              Rastrea un clip o video por el pipeline.
             </span>
           </div>
           <span className="rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary transition-colors group-hover:border-tc-accent group-hover:text-tc-fg group-open:hidden">
-            + New
+            + Nuevo
           </span>
           <span className="hidden rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary group-open:inline">
-            Close
+            Cerrar
           </span>
         </summary>
         <div className="border-t border-tc-border-soft p-5">
@@ -94,16 +94,16 @@ export default async function ContentPage() {
       <details className="group mb-6 rounded-lg border border-tc-border bg-card">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-5 py-4">
           <div className="flex flex-col">
-            <span className="font-semibold text-tc-fg">Import from Twitch</span>
+            <span className="font-semibold text-tc-fg">Importar de Twitch</span>
             <span className="text-sm text-tc-fg-tertiary">
-              Pull a channel&apos;s recent VODs into the pipeline.
+              Trae los VODs recientes de un canal al pipeline.
             </span>
           </div>
           <span className="rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary transition-colors group-hover:border-tc-accent group-hover:text-tc-fg group-open:hidden">
-            Connect
+            Conectar
           </span>
           <span className="hidden rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary group-open:inline">
-            Close
+            Cerrar
           </span>
         </summary>
         <div className="border-t border-tc-border-soft p-5">
@@ -118,28 +118,29 @@ export default async function ContentPage() {
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-5 py-4">
           <div className="flex flex-col">
             <span className="flex items-center gap-2 font-semibold text-tc-fg">
-              Find highlights
+              Buscar highlights
               <span className="rounded bg-[hsl(var(--tc-accent)/0.14)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--tc-accent-hover))]">
                 beta
               </span>
             </span>
             <span className="text-sm text-tc-fg-tertiary">
-              Surface a channel&apos;s most-watched clips as highlight
-              candidates.
+              Muestra los clips más vistos de un canal como candidatos a
+              highlight.
             </span>
           </div>
           <span className="rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary transition-colors group-hover:border-tc-accent group-hover:text-tc-fg group-open:hidden">
-            Open
+            Abrir
           </span>
           <span className="hidden rounded-md border border-tc-border bg-tc-surface-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-tc-fg-secondary group-open:inline">
-            Close
+            Cerrar
           </span>
         </summary>
         <div className="border-t border-tc-border-soft p-5">
           <HighlightsFinder />
           <p className="mt-4 text-[11px] leading-relaxed text-tc-fg-muted">
-            Highlights are ranked by viewer clip views — the community&apos;s own
-            signal of the best moments. Full video AI analysis can come later.
+            Los highlights se ordenan por las vistas de los clips — la señal de
+            la propia comunidad sobre los mejores momentos. El análisis de video
+            con IA puede venir después.
           </p>
         </div>
       </details>
@@ -148,14 +149,14 @@ export default async function ContentPage() {
       {contentRes.ok === false ? (
         <Card>
           <CardContent className="p-6 text-sm text-[hsl(var(--tc-destructive))]">
-            Could not load content: {contentRes.error}
+            No se pudo cargar el contenido: {contentRes.error}
           </CardContent>
         </Card>
       ) : pieces.length === 0 ? (
         <EmptyState
           icon={<Clapperboard className="h-4 w-4" />}
-          title="No content yet"
-          description="Open “Add content” above to start the pipeline."
+          title="Sin contenido aún"
+          description="Abre “Agregar contenido” arriba para iniciar el pipeline."
         />
       ) : (
         <ContentBoard pieces={pieces} />

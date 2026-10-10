@@ -36,16 +36,9 @@ const NEXT_STATUS: Partial<Record<ContentStatus, ContentStatus>> = {
 };
 
 const NEXT_LABEL: Partial<Record<ContentStatus, string>> = {
-  idea: "Start editing",
-  editing: "Send to review",
-  review: "Publish",
-};
-
-const PLATFORM_LABEL: Record<string, string> = {
-  twitch: "Twitch",
-  youtube: "YouTube",
-  tiktok: "TikTok",
-  other: "Other",
+  idea: "Empezar edición",
+  editing: "Enviar a revisión",
+  review: "Publicar",
 };
 
 export function ContentCard({ piece }: { piece: ContentPiece }) {
@@ -88,7 +81,7 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
         <input type="hidden" name="contentId" value={piece.id} />
         <div className="flex items-center justify-between">
           <span className="font-mono text-[11px] uppercase tracking-wider text-tc-fg-tertiary">
-            Edit content
+            Editar contenido
           </span>
           <button
             type="button"
@@ -100,7 +93,7 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
           </button>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`ct-${piece.id}`}>Title</Label>
+          <Label htmlFor={`ct-${piece.id}`}>Título</Label>
           <Input
             id={`ct-${piece.id}`}
             name="title"
@@ -109,7 +102,7 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`cp-${piece.id}`}>Platform</Label>
+          <Label htmlFor={`cp-${piece.id}`}>Plataforma</Label>
           <select
             id={`cp-${piece.id}`}
             name="platform"
@@ -124,7 +117,7 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
           </select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`cu-${piece.id}`}>Link</Label>
+          <Label htmlFor={`cu-${piece.id}`}>Enlace</Label>
           <Input
             id={`cu-${piece.id}`}
             name="url"
@@ -138,7 +131,7 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
           </p>
         )}
         <Button type="submit" disabled={updating} size="sm">
-          {updating ? "Saving..." : "Save"}
+          {updating ? "Guardando..." : "Guardar"}
         </Button>
       </form>
     );

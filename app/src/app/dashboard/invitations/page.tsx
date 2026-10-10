@@ -24,7 +24,7 @@ export default async function InvitationsPage() {
     return (
       <Card className="mx-auto max-w-md">
         <CardContent className="p-6 text-center text-sm text-tc-fg-tertiary">
-          Create your organization first (Overview tab).
+          Primero crea tu organización (pestaña Resumen).
         </CardContent>
       </Card>
     );
@@ -38,20 +38,20 @@ export default async function InvitationsPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="Access"
-        title="Invitations"
-        subtitle={`Invite people to join ${ctx.data.organization.name} with their Discord account.`}
+        eyebrow="Acceso"
+        title="Invitaciones"
+        subtitle={`Invita personas a unirse a ${ctx.data.organization.name} con su cuenta de Discord.`}
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <section className="flex flex-col gap-3">
           <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
-            Invite links
+            Enlaces de invitación
           </h2>
           {invites.ok === false ? (
             <Card>
               <CardContent className="p-6 text-sm text-[hsl(var(--tc-destructive))]">
-                Could not load invitations: {invites.error}
+                No se pudieron cargar las invitaciones: {invites.error}
               </CardContent>
             </Card>
           ) : (
@@ -62,9 +62,9 @@ export default async function InvitationsPage() {
         <aside>
           <Card className="lg:sticky lg:top-6">
             <CardHeader>
-              <CardTitle className="text-base">New invitation</CardTitle>
+              <CardTitle className="text-base">Nueva invitación</CardTitle>
               <p className="text-sm text-tc-fg-tertiary">
-                Pick a role, then share the link.
+                Elige un rol, luego comparte el enlace.
               </p>
             </CardHeader>
             <CardContent>

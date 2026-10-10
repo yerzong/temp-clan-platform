@@ -23,7 +23,7 @@ export function CreateMatchForm({
   if (teams.length < 2) {
     return (
       <p className="text-sm text-tc-fg-tertiary">
-        Enroll at least two teams to schedule a match.
+        Inscribe al menos dos equipos para programar una partida.
       </p>
     );
   }
@@ -32,7 +32,7 @@ export function CreateMatchForm({
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="leagueId" value={leagueId} />
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="home-team">Home team</Label>
+        <Label htmlFor="home-team">Equipo local</Label>
         <select
           id="home-team"
           name="homeTeamId"
@@ -46,7 +46,7 @@ export function CreateMatchForm({
         </select>
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="away-team">Away team</Label>
+        <Label htmlFor="away-team">Equipo visitante</Label>
         <select
           id="away-team"
           name="awayTeamId"
@@ -66,7 +66,7 @@ export function CreateMatchForm({
         </p>
       )}
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? "Scheduling..." : "Schedule match"}
+        {pending ? "Programando..." : "Programar partida"}
       </Button>
     </form>
   );
