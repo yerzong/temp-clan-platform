@@ -2,9 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
-import { MembersRoster } from "@/features/members/components/members-roster";
-import { AddMemberForm } from "@/features/members/components/add-member-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MembersManager } from "@/features/members/components/members-manager";
+import { Card, CardContent } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -69,23 +68,7 @@ export default async function MembersPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          <MembersRoster members={members} />
-
-          <aside>
-            <Card className="lg:sticky lg:top-6">
-              <CardHeader>
-                <CardTitle className="text-base">Agregar miembro</CardTitle>
-                <p className="text-sm text-tc-fg-tertiary">
-                  Registra staff, jugadores o creadores.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <AddMemberForm />
-              </CardContent>
-            </Card>
-          </aside>
-        </div>
+        <MembersManager members={members} />
       )}
     </div>
   );

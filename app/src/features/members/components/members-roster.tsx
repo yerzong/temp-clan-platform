@@ -65,18 +65,32 @@ function groupByRole(members: Member[]): RoleGroup[] {
   ];
 }
 
-export function MembersRoster({ members }: { members: Member[] }) {
+export type RoleFilter = "all" | "staff" | "players" | "creators";
+
+export function MembersRoster({
+  members,
+  filter = "all",
+  emptyTitle = "Sin operadores desplegados",
+  emptyDescription = "Agrega tu primer miembro de staff, jugador o creador con el botón de arriba.",
+}: {
+  members: Member[];
+  filter?: RoleFilter;
+  emptyTitle?: string;
+  emptyDescription?: string;
+}) {
   if (members.length === 0) {
     return (
       <EmptyState
         icon={<Users className="h-4 w-4" />}
-        title="Sin operadores desplegados"
-        description="Agrega tu primer miembro de staff, jugador o creador con el botón de arriba."
+        title={emptyTitle}
+        description={emptyDescription}
       />
     );
   }
 
-  const groups = groupByRole(members);
+  const groups = groupByRole(members).filter(
+    (g) => filter === "all" || g.key === filter
+  );
 
   return (
     <div className="flex flex-col gap-8">
