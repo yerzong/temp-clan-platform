@@ -17,15 +17,15 @@ export function CreateOrgForm() {
   return (
     <form action={formAction} className="flex w-full flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="name">Organization name</Label>
+        <Label htmlFor="name">Nombre de la organización</Label>
         <Input id="name" name="name" required placeholder="Temp Tactical" />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="slug">Slug (URL identifier)</Label>
+        <Label htmlFor="slug">Slug (identificador de URL)</Label>
         <Input id="slug" name="slug" required placeholder="temp-tactical" />
         <p className="font-mono text-[11px] text-tc-fg-muted">
-          lowercase · numbers · dashes
+          minúsculas · números · guiones
         </p>
       </div>
 
@@ -36,7 +36,7 @@ export function CreateOrgForm() {
       )}
 
       <Button type="submit" disabled={pending} className="mt-1 w-full">
-        {pending ? "Creating..." : "Create organization"}
+        {pending ? "Creando..." : "Crear organización"}
       </Button>
     </form>
   );

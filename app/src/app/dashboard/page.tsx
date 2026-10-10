@@ -30,7 +30,7 @@ export default async function DashboardOverviewPage() {
     return (
       <Card className="mx-auto max-w-md">
         <CardContent className="p-6 text-center text-sm text-[hsl(var(--tc-destructive))]">
-          Could not load your organization: {ctx.error}
+          No se pudo cargar tu organización: {ctx.error}
         </CardContent>
       </Card>
     );
@@ -40,9 +40,9 @@ export default async function DashboardOverviewPage() {
     return (
       <Card className="mx-auto max-w-md">
         <CardHeader>
-          <CardTitle className="text-xl">Create your organization</CardTitle>
+          <CardTitle className="text-xl">Crea tu organización</CardTitle>
           <p className="text-sm text-tc-fg-tertiary">
-            Set up your command center to begin.
+            Configura tu centro de comando para empezar.
           </p>
         </CardHeader>
         <CardContent>
@@ -79,18 +79,18 @@ export default async function DashboardOverviewPage() {
   return (
     <div>
       <PageHeader
-        eyebrow={`Organization · you are ${role}`}
+        eyebrow={`Organización · eres ${role}`}
         title={organization.name}
-        subtitle="Your command center. Jump into any area below, or manage your roster at the bottom."
+        subtitle="Tu centro de comando. Entra a cualquier área, o gestiona tu roster abajo."
         actions={
           <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
-            <StatTile label="Members" value={members.length} tone="accent" />
+            <StatTile label="Miembros" value={members.length} tone="accent" />
             <StatTile
-              label="Players"
+              label="Jugadores"
               value={members.filter((m) => m.isPlayer).length}
             />
             <StatTile
-              label="Creators"
+              label="Creadores"
               value={members.filter((m) => m.isCreator).length}
             />
           </div>
@@ -101,30 +101,30 @@ export default async function DashboardOverviewPage() {
       <div className="tc-stagger mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           href="/dashboard/esports"
-          label="Teams"
+          label="Equipos"
           value={teams.length}
-          hint="esports squads"
+          hint="squads de esports"
           icon={Swords}
         />
         <SummaryCard
           href="/dashboard/content"
-          label="In progress"
+          label="En progreso"
           value={contentInProgress}
-          hint={`${content.length} total pieces`}
+          hint={`${content.length} piezas en total`}
           icon={Clapperboard}
         />
         <SummaryCard
           href="/dashboard/league"
-          label="Leagues"
+          label="Ligas"
           value={leagues.length}
           hint="Temp League"
           icon={Trophy}
         />
         <SummaryCard
           href="/dashboard/esports"
-          label="Need check-in"
+          label="Requieren atención"
           value={atRisk}
-          hint="players at risk"
+          hint="jugadores en riesgo"
           icon={HeartPulse}
           tone={atRisk > 0 ? "accent" : "neutral"}
         />

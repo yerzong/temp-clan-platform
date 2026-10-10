@@ -8,11 +8,11 @@ import { SideNav, type NavItem } from "@/components/layout/side-nav";
 export const dynamic = "force-dynamic";
 
 const NAV: NavItem[] = [
-  { href: "/dashboard", label: "Overview", icon: "overview" },
+  { href: "/dashboard", label: "Resumen", icon: "overview" },
   { href: "/dashboard/esports", label: "Esports", icon: "esports" },
-  { href: "/dashboard/content", label: "Content", icon: "content" },
+  { href: "/dashboard/content", label: "Contenido", icon: "content" },
   { href: "/dashboard/league", label: "Temp League", icon: "league" },
-  { href: "/dashboard/invitations", label: "Invitations", icon: "invitations" },
+  { href: "/dashboard/invitations", label: "Invitaciones", icon: "invitations" },
 ];
 
 export default async function DashboardLayout({
@@ -47,7 +47,7 @@ export default async function DashboardLayout({
         orgName ? (
           <div className="flex items-center gap-2">
             <span className="font-mono text-[11px] uppercase tracking-widest text-tc-fg-muted">
-              Org
+              Organización
             </span>
             <span className="truncate font-medium text-tc-fg">{orgName}</span>
           </div>

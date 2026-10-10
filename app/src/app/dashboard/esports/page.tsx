@@ -75,14 +75,14 @@ export default async function EsportsPage() {
     <div>
       <PageHeader
         eyebrow="Esports"
-        title="Teams & player sustainability"
-        subtitle="Create squads, assign players to rosters, and log wellbeing check-ins to catch burnout early."
+        title="Equipos y sostenibilidad"
+        subtitle="Crea squads, asigna jugadores al roster y registra check-ins de bienestar para detectar el burnout a tiempo."
         actions={
           <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
-            <StatTile label="Teams" value={teams.length} />
-            <StatTile label="Players" value={playerOptions.length} />
+            <StatTile label="Equipos" value={teams.length} />
+            <StatTile label="Jugadores" value={playerOptions.length} />
             <StatTile
-              label="Need check-in"
+              label="Atención"
               value={wellbeing.filter((p) => p.signal === "elevated").length}
               tone={
                 wellbeing.some((p) => p.signal === "elevated")

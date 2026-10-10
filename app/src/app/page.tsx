@@ -5,28 +5,28 @@ import { Button } from "@/components/ui/button";
 const CAPABILITIES = [
   {
     icon: Users,
-    title: "Roster & staff",
-    desc: "One directory for staff, players, and creators — each with roles.",
+    title: "Roster y staff",
+    desc: "Un directorio para staff, jugadores y creadores — cada uno con su rol.",
   },
   {
     icon: Swords,
-    title: "Esports teams",
-    desc: "Build squads for Versus 4v4 and Horde Siege, manage the roster.",
+    title: "Equipos de esports",
+    desc: "Arma squads para Versus 4v4 y Horde Siege, gestiona el roster.",
   },
   {
     icon: HeartPulse,
-    title: "Player sustainability",
-    desc: "Track wellbeing and burnout signals — keep players in the game.",
+    title: "Sostenibilidad del jugador",
+    desc: "Monitorea bienestar y señales de burnout — cuida a tus jugadores.",
   },
   {
     icon: Clapperboard,
-    title: "Content pipeline",
-    desc: "From idea to published, with Twitch VOD import and highlights.",
+    title: "Pipeline de contenido",
+    desc: "De idea a publicado, con importación de VODs de Twitch y highlights.",
   },
   {
     icon: Trophy,
     title: "Temp League",
-    desc: "Run a league with external teams, matches, and live standings.",
+    desc: "Corre una liga con equipos externos, partidas y tabla en vivo.",
   },
 ];
 
@@ -54,18 +54,18 @@ export default function Home() {
         </div>
 
         <h1 className="text-4xl font-semibold leading-tight tracking-tight text-tc-fg sm:text-6xl">
-          The command center for
+          El centro de comando para
           <br />
-          gaming organizations.
+          organizaciones de gaming.
         </h1>
 
         <p className="max-w-xl text-lg leading-8 text-tc-fg-secondary">
-          Run your staff, esports roster, creators, and your league — in one
-          place. Built for Gears E-Day organizations like Temp Tactical.
+          Gestiona tu staff, roster de esports, creadores y tu liga — en un solo
+          lugar. Hecho para organizaciones de Gears E-Day como Temp Tactical.
         </p>
 
         <Button asChild size="lg">
-          <Link href="/login">Sign in to deploy</Link>
+          <Link href="/login">Iniciar sesión</Link>
         </Button>
       </section>
 

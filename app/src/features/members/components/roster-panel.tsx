@@ -19,18 +19,19 @@ export function RosterPanel({ members }: { members: Result<Member[]> }) {
         <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
           Roster
         </h2>
+        {/* (Roster = plantilla de miembros) */}
 
         {members.ok === false ? (
           <Card>
             <CardContent className="p-6 text-sm text-[hsl(var(--tc-destructive))]">
-              Could not load members: {members.error}
+              No se pudieron cargar los miembros: {members.error}
             </CardContent>
           </Card>
         ) : list.length === 0 ? (
           <EmptyState
             icon={<Users className="h-4 w-4" />}
-            title="No operators deployed"
-            description="Add your first staff member, player, or creator on the right."
+            title="Sin operadores desplegados"
+            description="Agrega tu primer miembro de staff, jugador o creador a la derecha."
           />
         ) : (
           <div className="flex flex-col gap-2.5">
@@ -45,9 +46,9 @@ export function RosterPanel({ members }: { members: Result<Member[]> }) {
       <aside>
         <Card className="lg:sticky lg:top-6">
           <CardHeader>
-            <CardTitle className="text-base">Add operator</CardTitle>
+            <CardTitle className="text-base">Agregar miembro</CardTitle>
             <p className="text-sm text-tc-fg-tertiary">
-              Register staff, players, or creators.
+              Registra staff, jugadores o creadores.
             </p>
           </CardHeader>
           <CardContent>

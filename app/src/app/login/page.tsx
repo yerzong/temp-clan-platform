@@ -30,19 +30,19 @@ function LoginContent() {
           <CardContent className="flex flex-col items-center gap-6 p-7">
             <div className="flex flex-col items-center gap-1.5 text-center">
               <h1 className="text-xl font-semibold tracking-tight text-tc-fg">
-                Access command center
+                Acceso al centro de comando
               </h1>
               <p className="text-sm text-tc-fg-tertiary">
-                Authenticate to continue
+                Autentícate para continuar
               </p>
             </div>
 
             <Button onClick={signInWithDiscord} className="w-full" size="lg">
-              Continue with Discord
+              Continuar con Discord
             </Button>
 
             <p className="text-center font-mono text-[11px] uppercase tracking-wider text-tc-fg-muted">
-              More sign-in methods coming soon
+              Más métodos de acceso próximamente
             </p>
           </CardContent>
         </Card>

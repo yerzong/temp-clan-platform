@@ -76,7 +76,7 @@ export function MemberCard({ member }: { member: Member }) {
         <input type="hidden" name="membershipId" value={member.membershipId} />
         <div className="flex items-center justify-between">
           <span className="font-mono text-[11px] uppercase tracking-wider text-tc-fg-tertiary">
-            Edit operator
+            Editar miembro
           </span>
           <button
             type="button"
@@ -89,7 +89,7 @@ export function MemberCard({ member }: { member: Member }) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`name-${member.membershipId}`}>Name</Label>
+          <Label htmlFor={`name-${member.membershipId}`}>Nombre</Label>
           <Input
             id={`name-${member.membershipId}`}
             name="displayName"
@@ -99,7 +99,7 @@ export function MemberCard({ member }: { member: Member }) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`role-${member.membershipId}`}>Role</Label>
+          <Label htmlFor={`role-${member.membershipId}`}>Rol</Label>
           <select
             id={`role-${member.membershipId}`}
             name="role"
@@ -149,7 +149,7 @@ export function MemberCard({ member }: { member: Member }) {
         )}
 
         <Button type="submit" disabled={updating} size="sm">
-          {updating ? "Saving..." : "Save changes"}
+          {updating ? "Guardando..." : "Guardar cambios"}
         </Button>
       </form>
     );
@@ -191,7 +191,7 @@ export function MemberCard({ member }: { member: Member }) {
       <div className="flex shrink-0 items-center gap-1">
         {confirmingDelete ? (
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] text-tc-fg-tertiary">Remove?</span>
+            <span className="text-[11px] text-tc-fg-tertiary">¿Eliminar?</span>
             <Button
               type="button"
               variant="destructive"
@@ -217,7 +217,7 @@ export function MemberCard({ member }: { member: Member }) {
               type="button"
               onClick={() => setEditing(true)}
               className="rounded-md p-2 text-tc-fg-muted opacity-0 transition-all hover:bg-tc-surface-2 hover:text-tc-fg group-hover:opacity-100"
-              aria-label="Edit member"
+              aria-label="Editar miembro"
             >
               <Pencil className="h-4 w-4" />
             </button>
@@ -226,7 +226,7 @@ export function MemberCard({ member }: { member: Member }) {
                 type="button"
                 onClick={() => setConfirmingDelete(true)}
                 className="rounded-md p-2 text-tc-fg-muted opacity-0 transition-all hover:bg-tc-surface-2 hover:text-[hsl(var(--tc-destructive))] group-hover:opacity-100"
-                aria-label="Remove member"
+                aria-label="Eliminar miembro"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

@@ -33,18 +33,18 @@ export function AddMemberForm() {
   return (
     <form ref={formRef} action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="displayName">Operator name</Label>
+        <Label htmlFor="displayName">Nombre del miembro</Label>
         <Input
           id="displayName"
           name="displayName"
           required
-          placeholder="e.g. .yerzong"
+          placeholder="ej. .yerzong"
           autoComplete="off"
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="role">Role</Label>
+        <Label htmlFor="role">Rol</Label>
         <select
           id="role"
           name="role"
@@ -60,7 +60,7 @@ export function AddMemberForm() {
       </div>
 
       <div className="flex flex-col gap-2.5">
-        <Label>Attributes</Label>
+        <Label>Atributos</Label>
         <div className="flex gap-5">
           <label className="flex items-center gap-2 text-sm text-tc-fg-secondary">
             <input
@@ -68,7 +68,7 @@ export function AddMemberForm() {
               name="isPlayer"
               className="h-4 w-4 accent-[hsl(var(--tc-accent))]"
             />
-            Competes (player)
+            Compite (jugador)
           </label>
           <label className="flex items-center gap-2 text-sm text-tc-fg-secondary">
             <input
@@ -76,7 +76,7 @@ export function AddMemberForm() {
               name="isCreator"
               className="h-4 w-4 accent-[hsl(var(--tc-accent))]"
             />
-            Creates content
+            Crea contenido
           </label>
         </div>
       </div>
@@ -88,7 +88,7 @@ export function AddMemberForm() {
       )}
 
       <Button type="submit" disabled={pending} className="mt-1 w-full">
-        {pending ? "Adding..." : "Add to roster"}
+        {pending ? "Agregando..." : "Agregar al roster"}
       </Button>
     </form>
   );
