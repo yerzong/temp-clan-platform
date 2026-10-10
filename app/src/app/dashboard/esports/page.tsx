@@ -99,13 +99,13 @@ export default async function EsportsPage() {
           {/* Teams */}
           <section className="flex flex-col gap-3">
             <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
-              Teams
+              Equipos
             </h2>
             {teams.length === 0 ? (
               <EmptyState
                 icon={<Swords className="h-4 w-4" />}
-                title="No teams formed"
-                description="Create your first squad on the right to start building a roster."
+                title="Sin equipos aún"
+                description="Crea tu primer squad a la derecha para empezar a armar el roster."
               />
             ) : (
               <div className="grid gap-2.5">
@@ -119,7 +119,7 @@ export default async function EsportsPage() {
           {/* Player sustainability */}
           <section className="flex flex-col gap-3">
             <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
-              Player sustainability
+              Sostenibilidad del jugador
             </h2>
             <WellbeingPanel players={wellbeing} />
           </section>
@@ -129,7 +129,7 @@ export default async function EsportsPage() {
         <aside className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Create team</CardTitle>
+              <CardTitle className="text-base">Crear equipo</CardTitle>
             </CardHeader>
             <CardContent>
               <CreateTeamForm />
@@ -138,9 +138,9 @@ export default async function EsportsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Assign to roster</CardTitle>
+              <CardTitle className="text-base">Asignar al roster</CardTitle>
               <p className="text-sm text-tc-fg-tertiary">
-                Put a player on a team.
+                Pon un jugador en un equipo.
               </p>
             </CardHeader>
             <CardContent>
@@ -150,9 +150,9 @@ export default async function EsportsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Wellbeing check-in</CardTitle>
+              <CardTitle className="text-base">Check-in de bienestar</CardTitle>
               <p className="text-sm text-tc-fg-tertiary">
-                Log how a player is doing today.
+                Registra cómo está un jugador hoy.
               </p>
             </CardHeader>
             <CardContent>
