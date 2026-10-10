@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 const NAV: NavItem[] = [
   { href: "/dashboard", label: "Resumen", icon: "overview" },
+  { href: "/dashboard/members", label: "Miembros", icon: "members" },
   { href: "/dashboard/esports", label: "Esports", icon: "esports" },
   { href: "/dashboard/content", label: "Contenido", icon: "content" },
   { href: "/dashboard/league", label: "Temp League", icon: "league" },

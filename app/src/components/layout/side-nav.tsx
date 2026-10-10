@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutGrid,
+  Users,
   Swords,
   UserPlus,
   Clapperboard,
@@ -20,6 +21,7 @@ export interface NavItem {
 
 const ICONS: Record<string, LucideIcon> = {
   overview: LayoutGrid,
+  members: Users,
   esports: Swords,
   content: Clapperboard,
   league: Trophy,
