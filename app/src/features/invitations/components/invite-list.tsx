@@ -13,6 +13,20 @@ type RoleVariant = "owner" | "admin" | "staff" | "creator" | "player";
 
 const initialState: ActionResult = {};
 
+const ROLE_LABELS: Record<string, string> = {
+  owner: "Dueño",
+  admin: "Admin",
+  staff: "Staff",
+  creator: "Creador",
+  player: "Jugador",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Pendiente",
+  revoked: "Revocada",
+  accepted: "Aceptada",
+};
+
 function InviteRow({ invite }: { invite: Invitation }) {
   const [copied, setCopied] = useState(false);
   const [, revokeAction, revoking] = useActionState(
@@ -35,7 +49,9 @@ function InviteRow({ invite }: { invite: Invitation }) {
 
   return (
     <div className="flex items-center gap-3 rounded-lg border border-tc-border bg-card p-3">
-      <Badge variant={invite.role as RoleVariant}>{invite.role}</Badge>
+      <Badge variant={invite.role as RoleVariant}>
+        {ROLE_LABELS[invite.role] ?? invite.role}
+      </Badge>
 
       <span className="flex-1 truncate font-mono text-xs text-tc-fg-tertiary">
         /invite/{invite.token.slice(0, 12)}…
@@ -51,7 +67,7 @@ function InviteRow({ invite }: { invite: Invitation }) {
             className="gap-1.5"
           >
             {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-            {copied ? "Copied" : "Copy link"}
+            {copied ? "Copiado" : "Copiar enlace"}
           </Button>
           <form action={revokeAction}>
             <input type="hidden" name="invitationId" value={invite.id} />
@@ -60,7 +76,7 @@ function InviteRow({ invite }: { invite: Invitation }) {
               variant="ghost"
               size="icon"
               disabled={revoking}
-              aria-label="Revoke invitation"
+              aria-label="Revocar invitación"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -68,7 +84,7 @@ function InviteRow({ invite }: { invite: Invitation }) {
         </>
       ) : (
         <span className="font-mono text-[11px] uppercase tracking-wider text-tc-fg-muted">
-          {invite.status}
+          {STATUS_LABELS[invite.status] ?? invite.status}
         </span>
       )}
     </div>
@@ -79,8 +95,8 @@ export function InviteList({ invitations }: { invitations: Invitation[] }) {
   if (invitations.length === 0) {
     return (
       <EmptyState
-        title="No invitations yet"
-        description="Generate an invite link to let someone join with their Discord account."
+        title="Aún no hay invitaciones"
+        description="Genera un enlace de invitación para que alguien se una con su cuenta de Discord."
       />
     );
   }

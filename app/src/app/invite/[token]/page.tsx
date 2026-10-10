@@ -28,14 +28,14 @@ export default async function InvitePage({
           <Card className="w-full">
             <CardContent className="flex flex-col items-center gap-5 p-7 text-center">
               <h1 className="text-xl font-semibold tracking-tight text-tc-fg">
-                You have been invited
+                Has sido invitado
               </h1>
               <p className="text-sm text-tc-fg-tertiary">
-                Sign in with Discord to join the organization.
+                Inicia sesión con Discord para unirte a la organización.
               </p>
               <Button asChild className="w-full">
                 <Link href={`/login?next=/invite/${token}`}>
-                  Continue with Discord
+                  Continuar con Discord
                 </Link>
               </Button>
             </CardContent>
@@ -56,13 +56,13 @@ export default async function InvitePage({
           <Card className="w-full">
             <CardContent className="flex flex-col items-center gap-5 p-7 text-center">
               <h1 className="text-lg font-semibold text-tc-fg">
-                Invitation problem
+                Problema con la invitación
               </h1>
               <p className="text-sm text-[hsl(var(--tc-destructive))]">
                 {result.error}
               </p>
               <Button asChild variant="outline" className="w-full">
-                <Link href="/dashboard">Go to dashboard</Link>
+                <Link href="/dashboard">Ir al panel</Link>
               </Button>
             </CardContent>
           </Card>
