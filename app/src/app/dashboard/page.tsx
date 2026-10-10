@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Swords, Clapperboard, Trophy, HeartPulse } from "lucide-react";
+import { Users, Swords, Clapperboard, Trophy, HeartPulse } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
@@ -7,7 +7,6 @@ import { EsportsService } from "@/features/esports/esports-service";
 import { ContentService } from "@/features/content/content-service";
 import { LeagueService } from "@/features/league/league-service";
 import { CreateOrgForm } from "@/features/organizations/components/create-org-form";
-import { RosterPanel } from "@/features/members/components/roster-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat";
 import { PageHeader } from "@/components/layout/page-header";
@@ -81,7 +80,7 @@ export default async function DashboardOverviewPage() {
       <PageHeader
         eyebrow={`Organización · eres ${role}`}
         title={organization.name}
-        subtitle="Tu centro de comando. Entra a cualquier área, o gestiona tu roster abajo."
+        subtitle="Tu centro de comando. Entra a cualquier área para gestionarla en detalle."
         actions={
           <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
             <StatTile label="Miembros" value={members.length} tone="accent" />
@@ -98,7 +97,14 @@ export default async function DashboardOverviewPage() {
       />
 
       {/* Cross-module snapshot */}
-      <div className="tc-stagger mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="tc-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <SummaryCard
+          href="/dashboard/members"
+          label="Miembros"
+          value={members.length}
+          hint="staff, jugadores y creadores"
+          icon={Users}
+        />
         <SummaryCard
           href="/dashboard/esports"
           label="Equipos"
@@ -129,8 +135,6 @@ export default async function DashboardOverviewPage() {
           tone={atRisk > 0 ? "accent" : "neutral"}
         />
       </div>
-
-      <RosterPanel members={members} />
     </div>
   );
 }

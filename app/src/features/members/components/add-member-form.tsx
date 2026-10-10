@@ -11,8 +11,8 @@ const initialState: ActionResult = {};
 
 const ROLES = [
   { value: "staff", label: "Staff" },
-  { value: "player", label: "Player" },
-  { value: "creator", label: "Creator" },
+  { value: "player", label: "Jugador" },
+  { value: "creator", label: "Creador" },
   { value: "admin", label: "Admin" },
 ];
 
@@ -20,7 +20,7 @@ export function AddMemberForm() {
   const [state, formAction, pending] = useActionState(addMember, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useActionToast(state, pending, "Member added");
+  useActionToast(state, pending, "Miembro agregado");
 
   // Clear the form after a successful add (no error and not pending).
   useEffect(() => {

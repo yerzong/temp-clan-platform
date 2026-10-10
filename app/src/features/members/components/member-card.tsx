@@ -19,10 +19,24 @@ type RoleVariant = "owner" | "admin" | "staff" | "creator" | "player";
 
 const initialState: ActionResult = {};
 
+const ROLE_LABELS: Record<string, string> = {
+  owner: "Dueño",
+  admin: "Admin",
+  staff: "Staff",
+  creator: "Creador",
+  player: "Jugador",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  active: "Activo",
+  invited: "Invitado",
+  inactive: "Inactivo",
+};
+
 const EDITABLE_ROLES = [
   { value: "staff", label: "Staff" },
-  { value: "player", label: "Player" },
-  { value: "creator", label: "Creator" },
+  { value: "player", label: "Jugador" },
+  { value: "creator", label: "Creador" },
   { value: "admin", label: "Admin" },
 ];
 
@@ -44,7 +58,7 @@ export function MemberCard({ member }: { member: Member }) {
   );
   const [deleting, startDelete] = useTransition();
 
-  useActionToast(updateState, updating, "Member updated");
+  useActionToast(updateState, updating, "Miembro actualizado");
 
   function doDelete() {
     startDelete(async () => {
@@ -54,7 +68,7 @@ export function MemberCard({ member }: { member: Member }) {
       if (res?.error) {
         toast.error(res.error);
       } else {
-        toast.success("Member removed");
+        toast.success("Miembro eliminado");
       }
     });
   }
@@ -107,7 +121,7 @@ export function MemberCard({ member }: { member: Member }) {
             disabled={isOwner}
             className="h-10 w-full rounded-md border border-tc-border bg-input px-3 text-sm text-tc-fg outline-none focus-visible:border-tc-accent disabled:opacity-60"
           >
-            {isOwner && <option value="owner">Owner</option>}
+            {isOwner && <option value="owner">Dueño</option>}
             {EDITABLE_ROLES.map((r) => (
               <option key={r.value} value={r.value}>
                 {r.label}
@@ -116,7 +130,7 @@ export function MemberCard({ member }: { member: Member }) {
           </select>
           {isOwner && (
             <p className="text-[11px] text-tc-fg-muted">
-              The owner&apos;s role can&apos;t be changed.
+              No se puede cambiar el rol del dueño.
             </p>
           )}
         </div>
@@ -129,7 +143,7 @@ export function MemberCard({ member }: { member: Member }) {
               defaultChecked={member.isPlayer}
               className="h-4 w-4 accent-[hsl(var(--tc-accent))]"
             />
-            Player
+            Jugador
           </label>
           <label className="flex items-center gap-2 text-sm text-tc-fg-secondary">
             <input
@@ -138,7 +152,7 @@ export function MemberCard({ member }: { member: Member }) {
               defaultChecked={member.isCreator}
               className="h-4 w-4 accent-[hsl(var(--tc-accent))]"
             />
-            Creator
+            Creador
           </label>
         </div>
 
@@ -181,9 +195,11 @@ export function MemberCard({ member }: { member: Member }) {
           {member.displayName}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant={member.role as RoleVariant}>{member.role}</Badge>
-          {member.isPlayer && <Badge variant="player">player</Badge>}
-          {member.isCreator && <Badge variant="creator">creator</Badge>}
+          <Badge variant={member.role as RoleVariant}>
+            {ROLE_LABELS[member.role] ?? member.role}
+          </Badge>
+          {member.isPlayer && <Badge variant="player">jugador</Badge>}
+          {member.isCreator && <Badge variant="creator">creador</Badge>}
         </div>
       </div>
 
@@ -199,7 +215,7 @@ export function MemberCard({ member }: { member: Member }) {
               disabled={deleting}
               onClick={doDelete}
             >
-              {deleting ? "..." : "Yes"}
+              {deleting ? "..." : "Sí"}
             </Button>
             <Button
               type="button"
@@ -232,7 +248,7 @@ export function MemberCard({ member }: { member: Member }) {
               </button>
             )}
             <span className="ml-1 font-mono text-[11px] uppercase tracking-wider text-tc-fg-muted">
-              {member.status}
+              {STATUS_LABELS[member.status] ?? member.status}
             </span>
           </>
         )}
