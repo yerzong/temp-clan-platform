@@ -105,18 +105,18 @@ export function PlayerCard({
         </div>
       )}
 
-      {/* Live-on-Twitch badge */}
-      {isLive && (
-        <div className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-[hsl(var(--tc-destructive)/0.5)] bg-[hsl(var(--tc-destructive)/0.9)] px-2 py-0.5 shadow-[0_0_14px_-2px_hsl(var(--tc-destructive))]">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-          <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-white">
-            En vivo
-          </span>
-        </div>
-      )}
+
 
       {/* Name band over the gradient */}
       <div className="relative z-10 mt-auto px-3 pb-3 pt-10">
+        {isLive && (
+          <span className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tc-destructive)/0.5)] bg-[hsl(var(--tc-destructive)/0.9)] px-2 py-0.5 shadow-[0_0_14px_-4px_hsl(var(--tc-destructive))]">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+            <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-white">
+              En vivo
+            </span>
+          </span>
+        )}
         <p className="truncate text-base font-bold uppercase leading-tight tracking-tight text-tc-fg">
           {slot.displayName}
         </p>

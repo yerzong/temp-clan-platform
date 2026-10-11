@@ -39,7 +39,13 @@ function initials(name: string): string {
  * opens a right-side Sheet with the edit form; delete opens a centered
  * ConfirmDialog. The card itself never swaps into an inline form.
  */
-export function MemberCard({ member }: { member: Member }) {
+export function MemberCard({
+  member,
+  isLive = false,
+}: {
+  member: Member;
+  isLive?: boolean;
+}) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, startDelete] = useTransition();
@@ -91,6 +97,15 @@ export function MemberCard({ member }: { member: Member }) {
             <span className="truncate font-medium text-tc-fg">
               {member.displayName}
             </span>
+            {isLive && (
+              <span
+                title="En vivo en Twitch"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[hsl(var(--tc-destructive)/0.5)] bg-[hsl(var(--tc-destructive)/0.9)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+              >
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                En vivo
+              </span>
+            )}
             {member.isLinked ? (
               <span
                 title="Cuenta real — se unió con Discord"

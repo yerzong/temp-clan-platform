@@ -21,10 +21,17 @@ const FILTERS: { key: RoleFilter; label: string }[] = [
  * Client container for the members roster: live search, role filter chips, and
  * an "add member" button that opens a right-side slide-over with the form.
  */
-export function MembersManager({ members }: { members: Member[] }) {
+export function MembersManager({
+  members,
+  liveIds = [],
+}: {
+  members: Member[];
+  liveIds?: string[];
+}) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<RoleFilter>("all");
   const [open, setOpen] = useState(false);
+  const liveSet = useMemo(() => new Set(liveIds), [liveIds]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -91,6 +98,7 @@ export function MembersManager({ members }: { members: Member[] }) {
       <MembersRoster
         members={filtered}
         filter={filter}
+        liveSet={liveSet}
         emptyTitle={
           hasQuery ? "Sin resultados" : "Sin operadores desplegados"
         }

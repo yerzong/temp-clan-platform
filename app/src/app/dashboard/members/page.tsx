@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
+import { EsportsService } from "@/features/esports/esports-service";
+import { getLiveLogins } from "@/features/esports/twitch-service";
 import { MembersManager } from "@/features/members/components/members-manager";
 import { LeaveOrgButton } from "@/features/organizations/components/leave-org-button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,6 +51,26 @@ export default async function MembersPage() {
   const playerCount = members.filter((m) => m.isPlayer).length;
   const creatorCount = members.filter((m) => m.isCreator).length;
 
+  // Twitch live status for members with a linked Twitch handle.
+  const liveMemberIds = new Set<string>();
+  const memberIds = members.map((m) => m.membershipId);
+  if (memberIds.length > 0) {
+    const handlesRes = await new EsportsService(supabase).getTwitchHandles(
+      memberIds
+    );
+    if (handlesRes.ok && handlesRes.data.length > 0) {
+      const liveLogins = await getLiveLogins(handlesRes.data.map((h) => h.handle));
+      for (const { membershipId, handle } of handlesRes.data) {
+        const login = handle
+          .trim()
+          .toLowerCase()
+          .replace(/^@/, "")
+          .replace(/.*twitch\.tv\//, "");
+        if (liveLogins.has(login)) liveMemberIds.add(membershipId);
+      }
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -77,7 +99,7 @@ export default async function MembersPage() {
           </CardContent>
         </Card>
       ) : (
-        <MembersManager members={members} />
+        <MembersManager members={members} liveIds={Array.from(liveMemberIds)} />
       )}
     </div>
   );

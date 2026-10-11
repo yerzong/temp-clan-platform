@@ -74,11 +74,13 @@ export type RoleFilter = "all" | "staff" | "players" | "creators";
 export function MembersRoster({
   members,
   filter = "all",
+  liveSet,
   emptyTitle = "Sin operadores desplegados",
   emptyDescription = "Agrega tu primer miembro de staff, jugador o creador con el botón de arriba.",
 }: {
   members: Member[];
   filter?: RoleFilter;
+  liveSet?: Set<string>;
   emptyTitle?: string;
   emptyDescription?: string;
 }) {
@@ -99,14 +101,20 @@ export function MembersRoster({
   return (
     <div className="flex flex-col gap-8">
       {groups.map((group) => (
-        <RoleSection key={group.key} group={group} />
+        <RoleSection key={group.key} group={group} liveSet={liveSet} />
       ))}
     </div>
   );
 }
 
 /** One role group with its own pagination (10 per page). */
-function RoleSection({ group }: { group: RoleGroup }) {
+function RoleSection({
+  group,
+  liveSet,
+}: {
+  group: RoleGroup;
+  liveSet?: Set<string>;
+}) {
   const Icon = group.icon;
   const pager = usePagination(group.members, 10);
 
@@ -133,7 +141,11 @@ function RoleSection({ group }: { group: RoleGroup }) {
         <>
           <div className="flex flex-col gap-2.5">
             {pager.pageItems.map((m) => (
-              <MemberCard key={m.membershipId} member={m} />
+              <MemberCard
+                key={m.membershipId}
+                member={m}
+                isLive={liveSet?.has(m.membershipId) ?? false}
+              />
             ))}
           </div>
           <Pagination
