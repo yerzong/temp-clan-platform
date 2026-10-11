@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AvatarUploader } from "./avatar-uploader";
+import { Combobox, type ComboOption } from "@/components/ui/combobox";
 import { completeOnboarding, type ActionResult } from "../actions";
-import { COUNTRIES } from "../countries";
+import { COUNTRIES, DIAL_CODES, flagEmoji } from "../countries";
 
 const initialState: ActionResult = {};
 
@@ -20,6 +21,21 @@ const STEPS = [
   { key: "details", label: "Datos", icon: Sparkles },
   { key: "privacy", label: "Privacidad", icon: ShieldCheck },
 ] as const;
+
+const NATIONALITY_OPTIONS: ComboOption[] = COUNTRIES.map((c) => ({
+  value: c.name,
+  label: c.name,
+  prefix: flagEmoji(c.code),
+  keywords: c.code,
+}));
+
+const DIAL_OPTIONS: ComboOption[] = DIAL_CODES.map((c) => ({
+  value: c.dial,
+  label: `${c.name}`,
+  prefix: flagEmoji(c.code),
+  hint: c.dial,
+  keywords: `${c.code} ${c.dial}`,
+}));
 
 /**
  * Post-Discord onboarding, as an interactive 3-step wizard: (1) photo + name,
@@ -155,59 +171,68 @@ export function OnboardingForm({ profile }: { profile: MemberProfile }) {
           )}
 
           {step === 1 && (
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="o-username">Nombre de usuario</Label>
-                <Input
-                  id="o-username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ej. .yerzong"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="o-birth">Fecha de nacimiento</Label>
-                <Input
-                  id="o-birth"
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="o-nat">Nacionalidad</Label>
-                <select
-                  id="o-nat"
-                  value={nationality}
-                  onChange={(e) => setNationality(e.target.value)}
-                  className="h-10 w-full rounded-md border border-tc-border bg-input px-3 text-sm text-tc-fg outline-none focus-visible:border-tc-accent"
-                >
-                  <option value="">Sin especificar</option>
-                  {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.name}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="o-phone">Teléfono</Label>
-                <div className="flex gap-2">
-                  <select
-                    value={dial}
-                    onChange={(e) => setDial(e.target.value)}
-                    aria-label="Código de país"
-                    className="h-10 w-24 shrink-0 rounded-md border border-tc-border bg-input px-2 text-sm text-tc-fg outline-none focus-visible:border-tc-accent"
-                  >
-                    {COUNTRIES.map((c) => (
-                      <option key={c.code} value={c.dial}>{c.code} {c.dial}</option>
-                    ))}
-                  </select>
+            <div className="flex flex-col gap-5">
+              <p className="rounded-md border border-tc-border-soft bg-tc-surface-1 px-3 py-2 text-xs text-tc-fg-tertiary">
+                Todos estos datos son <span className="text-tc-fg-secondary">opcionales</span>.
+                Puedes completarlos ahora o más tarde desde tu perfil.
+              </p>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="o-username">Nombre de usuario</Label>
                   <Input
-                    id="o-phone"
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="55 1234 5678"
+                    id="o-username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="ej. .yerzong"
                   />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="o-birth">Fecha de nacimiento</Label>
+                  <Input
+                    id="o-birth"
+                    type="date"
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label>Nacionalidad</Label>
+                  <Combobox
+                    options={NATIONALITY_OPTIONS}
+                    value={nationality}
+                    onChange={setNationality}
+                    placeholder="Selecciona tu país"
+                    searchPlaceholder="Buscar país…"
+                    emptyText="Sin países."
+                    aria-label="Nacionalidad"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="o-phone">Teléfono</Label>
+                  <div className="flex gap-2">
+                    <div className="w-32 shrink-0">
+                      <Combobox
+                        options={DIAL_OPTIONS}
+                        value={dial}
+                        onChange={setDial}
+                        searchPlaceholder="País o lada…"
+                        aria-label="Código de país"
+                        renderValue={(opt) => (
+                          <span className="flex items-center gap-1.5">
+                            <span>{opt.prefix}</span>
+                            <span className="text-tc-fg">{opt.hint}</span>
+                          </span>
+                        )}
+                      />
+                    </div>
+                    <Input
+                      id="o-phone"
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="55 1234 5678"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -227,18 +252,32 @@ export function OnboardingForm({ profile }: { profile: MemberProfile }) {
                   Acepta el aviso para desplegarte en la plataforma.
                 </p>
               </div>
-              <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-tc-border bg-tc-surface-1 p-3 text-sm text-tc-fg-secondary transition-colors hover:border-tc-border-strong">
-                <input
-                  type="checkbox"
-                  checked={privacy}
-                  onChange={(e) => setPrivacy(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 accent-[hsl(var(--tc-accent))]"
-                />
+              <button
+                type="button"
+                onClick={() => setPrivacy((p) => !p)}
+                aria-pressed={privacy}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg border p-3.5 text-left text-sm transition-colors",
+                  privacy
+                    ? "border-tc-accent bg-[hsl(var(--tc-accent)/0.08)] text-tc-fg"
+                    : "border-tc-border bg-tc-surface-1 text-tc-fg-secondary hover:border-tc-border-strong"
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] border transition-colors",
+                    privacy
+                      ? "border-tc-accent bg-[hsl(var(--tc-accent))] text-[hsl(var(--tc-accent-fg))]"
+                      : "border-tc-border-strong bg-transparent"
+                  )}
+                >
+                  {privacy && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                </span>
                 <span>
                   Acepto el <span className="text-tc-fg">aviso de privacidad</span> y los
                   términos de uso de la plataforma.
                 </span>
-              </label>
+              </button>
             </div>
           )}
         </div>

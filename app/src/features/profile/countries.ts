@@ -40,3 +40,15 @@ export const COUNTRIES: Country[] = [
 export const DIAL_CODES = Array.from(
   new Map(COUNTRIES.map((c) => [`${c.code}`, c])).values()
 );
+
+/** Emoji flag from an ISO 3166-1 alpha-2 code (regional indicator symbols). */
+export function flagEmoji(code: string): string {
+  if (!/^[A-Za-z]{2}$/.test(code)) return "🏳️";
+  const base = 0x1f1e6;
+  return String.fromCodePoint(
+    ...code
+      .toUpperCase()
+      .split("")
+      .map((c) => base + (c.charCodeAt(0) - 65))
+  );
+}
