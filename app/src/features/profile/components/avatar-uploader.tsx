@@ -22,9 +22,14 @@ function initials(name: string): string {
 export function AvatarUploader({
   initialUrl,
   displayName,
+  onUploaded,
+  noHiddenInput = false,
 }: {
   initialUrl: string | null;
   displayName: string;
+  onUploaded?: (url: string) => void;
+  /** When the parent owns the avatarUrl hidden input, skip rendering ours. */
+  noHiddenInput?: boolean;
 }) {
   const [url, setUrl] = useState<string | null>(initialUrl);
   const [uploading, setUploading] = useState(false);
@@ -63,6 +68,7 @@ export function AvatarUploader({
       }
       const { data } = supabase.storage.from("avatars").getPublicUrl(path);
       setUrl(data.publicUrl);
+      onUploaded?.(data.publicUrl);
       toast.success("Foto actualizada. Guarda el perfil para confirmar.");
     } finally {
       setUploading(false);
@@ -71,8 +77,8 @@ export function AvatarUploader({
 
   return (
     <div className="flex items-center gap-4">
-      {/* Hidden input the parent form submits */}
-      <input type="hidden" name="avatarUrl" value={url ?? ""} />
+      {/* Hidden input the parent form submits (unless the parent owns it) */}
+      {!noHiddenInput && <input type="hidden" name="avatarUrl" value={url ?? ""} />}
 
       <button
         type="button"
