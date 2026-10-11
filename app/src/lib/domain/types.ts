@@ -127,6 +127,33 @@ export interface Invitation {
   state: InvitationState;
 }
 
+// --- Member profile + linked accounts ---------------------------------------
+
+export type LinkedAccountKind = "social" | "game";
+
+export interface LinkedAccount {
+  id: string;
+  platform: string;
+  kind: LinkedAccountKind;
+  handle: string;
+  url: string | null;
+  verified: boolean;
+}
+
+/** Full profile for the "view/edit profile" and the player detail modal. */
+export interface MemberProfile {
+  membershipId: string;
+  displayName: string;
+  username: string | null;
+  email: string | null;
+  avatarUrl: string | null;
+  birthDate: string | null;
+  nationality: string | null;
+  phone: string | null;
+  privacyAccepted: boolean;
+  accounts: LinkedAccount[];
+}
+
 // --- Notifications ----------------------------------------------------------
 
 export interface AppNotification {

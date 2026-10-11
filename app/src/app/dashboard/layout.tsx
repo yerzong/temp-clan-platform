@@ -16,6 +16,7 @@ const NAV: NavItem[] = [
   { href: "/dashboard/content", label: "Contenido", icon: "content" },
   { href: "/dashboard/league", label: "Temp League", icon: "league" },
   { href: "/dashboard/invitations", label: "Invitaciones", icon: "invitations" },
+  { href: "/dashboard/profile", label: "Mi perfil", icon: "profile" },
 ];
 
 export default async function DashboardLayout({

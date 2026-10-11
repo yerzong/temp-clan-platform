@@ -9,6 +9,7 @@ import {
   UserPlus,
   Clapperboard,
   Trophy,
+  UserCircle,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ const ICONS: Record<string, LucideIcon> = {
   content: Clapperboard,
   league: Trophy,
   invitations: UserPlus,
+  profile: UserCircle,
 };
 
 /** Generic vertical section nav. Active item carries the COG accent. */
