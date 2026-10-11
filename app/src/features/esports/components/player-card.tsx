@@ -21,9 +21,11 @@ function initials(name: string): string {
 export function PlayerCard({
   slot,
   onEmptyClick,
+  onViewClick,
 }: {
   slot: TeamSlot;
   onEmptyClick?: () => void;
+  onViewClick?: () => void;
 }) {
   const filled = Boolean(slot.membershipId);
 
@@ -55,26 +57,39 @@ export function PlayerCard({
   }
 
   return (
-    <div
+    <button
+      type="button"
+      onClick={onViewClick}
       className={cn(
-        "group relative flex aspect-[3/4] flex-col overflow-hidden rounded-xl border bg-gradient-to-b from-tc-surface-2 to-[hsl(var(--tc-canvas))] shadow-lg transition-transform",
+        "group relative flex aspect-[3/4] w-full flex-col overflow-hidden rounded-xl border text-left shadow-lg transition-transform hover:-translate-y-0.5",
         slot.isCaptain
           ? "border-[hsl(var(--tc-amber)/0.5)] shadow-[0_0_24px_-8px_hsl(var(--tc-amber)/0.4)]"
           : "border-tc-border-strong"
       )}
     >
-      {/* Tactical grid texture */}
+      {/* Full-bleed photo background */}
+      {slot.avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={slot.avatarUrl}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-tc-surface-2 to-[hsl(var(--tc-canvas))]">
+          <span className="font-mono text-5xl font-bold text-tc-fg-muted">
+            {initials(slot.displayName ?? "")}
+          </span>
+        </div>
+      )}
+
+      {/* Bottom gradient for name legibility */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "linear-gradient(hsl(var(--tc-fg)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--tc-fg)) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
+        className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--tc-canvas))] via-[hsl(var(--tc-canvas)/0.5)] to-transparent"
       />
 
-      {/* Position label — top-left, F1 "rating" position */}
+      {/* Position label — top-left */}
       <div className="absolute left-0 top-3 z-10 rounded-r-md bg-[hsl(var(--tc-accent))] px-2.5 py-1">
         <span className="font-mono text-xs font-bold uppercase tracking-wider text-[hsl(var(--tc-accent-fg))]">
           {slot.label}
@@ -83,29 +98,13 @@ export function PlayerCard({
 
       {/* Captain crown — top-right */}
       {slot.isCaptain && (
-        <div className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-[hsl(var(--tc-amber)/0.5)] bg-[hsl(var(--tc-amber)/0.15)] shadow-[0_0_12px_-2px_hsl(var(--tc-amber)/0.6)]">
+        <div className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-[hsl(var(--tc-amber)/0.5)] bg-[hsl(var(--tc-amber)/0.2)] shadow-[0_0_12px_-2px_hsl(var(--tc-amber)/0.6)] backdrop-blur">
           <Crown className="h-3.5 w-3.5 text-[hsl(var(--tc-amber))]" />
         </div>
       )}
 
-      {/* Avatar / initials fill the upper body */}
-      <div className="relative flex flex-1 items-center justify-center pt-6">
-        {slot.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={slot.avatarUrl}
-            alt=""
-            className="h-28 w-28 rounded-full border-2 border-tc-border object-cover"
-          />
-        ) : (
-          <span className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-tc-border bg-tc-surface-1 font-mono text-3xl font-bold text-tc-fg-secondary">
-            {initials(slot.displayName ?? "")}
-          </span>
-        )}
-      </div>
-
-      {/* Name + footer band */}
-      <div className="relative z-10 border-t border-tc-border-soft bg-[hsl(var(--tc-canvas)/0.6)] px-3 py-3 backdrop-blur-sm">
+      {/* Name band over the gradient */}
+      <div className="relative z-10 mt-auto px-3 pb-3 pt-10">
         <p className="truncate text-base font-bold uppercase leading-tight tracking-tight text-tc-fg">
           {slot.displayName}
         </p>
@@ -113,6 +112,6 @@ export function PlayerCard({
           {slot.isCaptain ? "Capitán" : "Titular"}
         </p>
       </div>
-    </div>
+    </button>
   );
 }

@@ -1,8 +1,17 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import {
+  Shield,
+  UserCog,
+  Swords,
+  Clapperboard,
+  Check,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Member } from "@/lib/domain/types";
 import { useActionToast } from "@/lib/use-action-toast";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,16 +19,16 @@ import { updateMember, type ActionResult } from "../actions";
 
 const initialState: ActionResult = {};
 
-const EDITABLE_ROLES = [
-  { value: "staff", label: "Staff" },
-  { value: "player", label: "Jugador" },
-  { value: "creator", label: "Creador" },
-  { value: "admin", label: "Admin" },
+const ROLES: { value: string; label: string; hint: string; icon: LucideIcon }[] = [
+  { value: "staff", label: "Staff", hint: "Opera la organización", icon: Shield },
+  { value: "player", label: "Jugador", hint: "Compite en equipos", icon: Swords },
+  { value: "creator", label: "Creador", hint: "Produce contenido", icon: Clapperboard },
+  { value: "admin", label: "Admin", hint: "Gestiona todo", icon: UserCog },
 ];
 
 /**
- * Edit form for a single member. Mirrors AddMemberForm's shape so both live in
- * the same slide-over. Calls onSuccess once a save settles without error.
+ * Edit form for a single member. Homologated with AddMemberForm: selectable
+ * role cards + attribute toggles. The owner's role is locked.
  */
 export function EditMemberForm({
   member,
@@ -28,31 +37,30 @@ export function EditMemberForm({
   member: Member;
   onSuccess?: () => void;
 }) {
-  const [state, formAction, pending] = useActionState(
-    updateMember,
-    initialState
-  );
+  const [state, formAction, pending] = useActionState(updateMember, initialState);
   const wasPending = useRef(false);
   const isOwner = member.role === "owner";
+
+  const [role, setRole] = useState(isOwner ? "admin" : member.role);
+  const [isPlayer, setIsPlayer] = useState(member.isPlayer);
+  const [isCreator, setIsCreator] = useState(member.isCreator);
 
   useActionToast(state, pending, "Miembro actualizado");
 
   useEffect(() => {
-    if (wasPending.current && !pending && !state.error) {
-      onSuccess?.();
-    }
+    if (wasPending.current && !pending && !state.error) onSuccess?.();
     wasPending.current = pending;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-5">
       <input type="hidden" name="membershipId" value={member.membershipId} />
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`name-${member.membershipId}`}>Nombre</Label>
+        <Label htmlFor="edit-name">Nombre</Label>
         <Input
-          id={`name-${member.membershipId}`}
+          id="edit-name"
           name="displayName"
           defaultValue={member.displayName}
           required
@@ -60,51 +68,76 @@ export function EditMemberForm({
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`role-${member.membershipId}`}>Rol</Label>
-        <select
-          id={`role-${member.membershipId}`}
-          name="role"
-          defaultValue={isOwner ? "admin" : member.role}
-          disabled={isOwner}
-          className="h-10 w-full rounded-md border border-tc-border bg-input px-3 text-sm text-tc-fg outline-none focus-visible:border-tc-accent disabled:opacity-60"
-        >
-          {isOwner && <option value="owner">Dueño</option>}
-          {EDITABLE_ROLES.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-        {isOwner && (
-          <p className="text-[11px] text-tc-fg-muted">
-            No se puede cambiar el rol del dueño.
+      {/* Role as selectable cards */}
+      <div className="flex flex-col gap-2">
+        <Label>Rol</Label>
+        <input type="hidden" name="role" value={role} />
+        {isOwner ? (
+          <p className="rounded-md border border-tc-border bg-tc-surface-2 p-3 text-xs text-tc-fg-tertiary">
+            Este miembro es el <strong className="text-tc-fg-secondary">dueño</strong>. Su rol no se puede cambiar.
           </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {ROLES.map((r) => {
+              const Icon = r.icon;
+              const active = role === r.value;
+              return (
+                <button
+                  key={r.value}
+                  type="button"
+                  onClick={() => setRole(r.value)}
+                  aria-pressed={active}
+                  className={cn(
+                    "flex flex-col items-start gap-1 rounded-md border p-2.5 text-left transition-colors",
+                    active
+                      ? "border-tc-accent bg-[hsl(var(--tc-accent)/0.1)]"
+                      : "border-tc-border bg-tc-surface-1 hover:border-tc-border-strong"
+                  )}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Icon
+                      className={cn(
+                        "h-3.5 w-3.5",
+                        active ? "text-[hsl(var(--tc-accent-hover))]" : "text-tc-fg-muted"
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        active ? "text-tc-fg" : "text-tc-fg-secondary"
+                      )}
+                    >
+                      {r.label}
+                    </span>
+                  </span>
+                  <span className="text-[11px] text-tc-fg-muted">{r.hint}</span>
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      <div className="flex flex-col gap-2.5">
+      {/* Attributes as toggle rows */}
+      <div className="flex flex-col gap-2">
         <Label>Atributos</Label>
-        <div className="flex gap-5">
-          <label className="flex items-center gap-2 text-sm text-tc-fg-secondary">
-            <input
-              type="checkbox"
-              name="isPlayer"
-              defaultChecked={member.isPlayer}
-              className="h-4 w-4 accent-[hsl(var(--tc-accent))]"
-            />
-            Jugador
-          </label>
-          <label className="flex items-center gap-2 text-sm text-tc-fg-secondary">
-            <input
-              type="checkbox"
-              name="isCreator"
-              defaultChecked={member.isCreator}
-              className="h-4 w-4 accent-[hsl(var(--tc-accent))]"
-            />
-            Creador
-          </label>
-        </div>
+        <input type="checkbox" name="isPlayer" checked={isPlayer} onChange={(e) => setIsPlayer(e.target.checked)} className="hidden" readOnly />
+        <input type="checkbox" name="isCreator" checked={isCreator} onChange={(e) => setIsCreator(e.target.checked)} className="hidden" readOnly />
+
+        <AttributeToggle
+          label="Compite"
+          hint="Puede entrar a rosters de equipos"
+          icon={Swords}
+          active={isPlayer}
+          onToggle={() => setIsPlayer((v) => !v)}
+        />
+        <AttributeToggle
+          label="Crea contenido"
+          hint="Aparece en el módulo de Contenido"
+          icon={Clapperboard}
+          active={isCreator}
+          onToggle={() => setIsCreator((v) => !v)}
+        />
       </div>
 
       {state.error && (
@@ -113,9 +146,60 @@ export function EditMemberForm({
         </p>
       )}
 
-      <Button type="submit" disabled={pending} className="mt-1 w-full">
+      <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Guardando..." : "Guardar cambios"}
       </Button>
     </form>
+  );
+}
+
+function AttributeToggle({
+  label,
+  hint,
+  icon: Icon,
+  active,
+  onToggle,
+}: {
+  label: string;
+  hint: string;
+  icon: LucideIcon;
+  active: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={active}
+      className={cn(
+        "flex items-center gap-3 rounded-md border p-2.5 text-left transition-colors",
+        active
+          ? "border-tc-accent bg-[hsl(var(--tc-accent)/0.08)]"
+          : "border-tc-border bg-tc-surface-1 hover:border-tc-border-strong"
+      )}
+    >
+      <Icon
+        className={cn(
+          "h-4 w-4 shrink-0",
+          active ? "text-[hsl(var(--tc-accent-hover))]" : "text-tc-fg-muted"
+        )}
+      />
+      <span className="flex flex-1 flex-col">
+        <span className={cn("text-sm font-medium", active ? "text-tc-fg" : "text-tc-fg-secondary")}>
+          {label}
+        </span>
+        <span className="text-[11px] text-tc-fg-muted">{hint}</span>
+      </span>
+      <span
+        className={cn(
+          "flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors",
+          active
+            ? "border-tc-accent bg-[hsl(var(--tc-accent))] text-[hsl(var(--tc-accent-fg))]"
+            : "border-tc-border-strong bg-transparent"
+        )}
+      >
+        {active && <Check className="h-3.5 w-3.5" />}
+      </span>
+    </button>
   );
 }

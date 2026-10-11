@@ -127,7 +127,11 @@ export function SlotCard({
 
   return (
     <div className="relative">
-      <PlayerCard slot={slot} onEmptyClick={() => setAssignOpen(true)} />
+      <PlayerCard
+        slot={slot}
+        onEmptyClick={() => setAssignOpen(true)}
+        onViewClick={() => setViewOpen(true)}
+      />
 
       {/* Top-right actions: view (filled only) + edit */}
       <div className="absolute right-2 top-2 z-20 flex items-center gap-1">
