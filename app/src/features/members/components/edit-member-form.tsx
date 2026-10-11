@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateMember, updateMemberProfile, type ActionResult } from "../actions";
 import { RolePicker, type RoleSelection } from "./role-picker";
+import { AvatarUploader } from "@/features/profile/components/avatar-uploader";
 import { COUNTRIES } from "@/features/profile/countries";
 
 const initialState: ActionResult = {};
@@ -95,6 +96,11 @@ export function EditMemberForm({
           Información de contacto
         </span>
 
+        <div className="flex flex-col gap-1.5">
+          <Label>Foto de perfil</Label>
+          <AvatarUploader initialUrl={member.avatarUrl ?? null} displayName={member.displayName} />
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="em-user">Usuario</Label>
@@ -128,10 +134,6 @@ export function EditMemberForm({
               <Input id="em-phone" name="phoneNumber" type="tel" defaultValue={initialPhone.number} placeholder="55 1234 5678" />
               <input type="hidden" name="phoneDial" value={dial} />
             </div>
-          </div>
-          <div className="flex flex-col gap-1.5 sm:col-span-2">
-            <Label htmlFor="em-avatar">Foto (URL)</Label>
-            <Input id="em-avatar" name="avatarUrl" defaultValue={member.avatarUrl ?? ""} placeholder="https://…" />
           </div>
         </div>
 
