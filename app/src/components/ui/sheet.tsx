@@ -3,12 +3,14 @@
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useMountedTransition } from "@/lib/use-mounted-transition";
 
 /**
  * Right-side slide-over drawer. Overlays content (does not push the layout):
- * a dimmed backdrop + a panel that slides in from the right. Closes on Escape,
- * backdrop click, or the X button. Locks body scroll while open and renders
- * through a portal so it sits above everything.
+ * a dimmed backdrop + a panel that slides in from the right, and slides back
+ * out on close. Closes on Escape, backdrop click, or the X button. Locks body
+ * scroll while open and renders through a portal so it sits above everything.
  */
 export function Sheet({
   open,
@@ -23,9 +25,11 @@ export function Sheet({
   description?: string;
   children: ReactNode;
 }) {
-  // Close on Escape + lock body scroll while open.
+  const { mounted, closing } = useMountedTransition(open, 300);
+
+  // Close on Escape + lock body scroll while mounted.
   useEffect(() => {
-    if (!open) return;
+    if (!mounted) return;
 
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -39,9 +43,9 @@ export function Sheet({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
-  }, [open, onClose]);
+  }, [mounted, onClose]);
 
-  if (!open || typeof document === "undefined") return null;
+  if (!mounted || typeof document === "undefined") return null;
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -50,7 +54,10 @@ export function Sheet({
         type="button"
         aria-label="Cerrar"
         onClick={onClose}
-        className="tc-overlay-in absolute inset-0 bg-black/60 backdrop-blur-[1px]"
+        className={cn(
+          "absolute inset-0 bg-black/60 backdrop-blur-[1px]",
+          closing ? "tc-overlay-out" : "tc-overlay-in"
+        )}
       />
 
       {/* Panel */}
@@ -58,7 +65,10 @@ export function Sheet({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="tc-sheet-in relative z-10 flex h-full w-full max-w-md flex-col border-l border-tc-border-strong bg-tc-surface-1 shadow-2xl"
+        className={cn(
+          "relative z-10 flex h-full w-full max-w-md flex-col border-l border-tc-border-strong bg-tc-surface-1 shadow-2xl",
+          closing ? "tc-sheet-out" : "tc-sheet-in"
+        )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-tc-border px-6 py-5">
           <div className="flex flex-col gap-1">
