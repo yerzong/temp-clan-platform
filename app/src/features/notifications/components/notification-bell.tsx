@@ -48,40 +48,73 @@ export function NotificationBell({
   const unread = items.filter((n) => !n.readAt).length;
 
   // Live updates via Realtime: listen for new notifications for this user.
+  // RLS-protected tables require the socket to carry the user's access token,
+  // so we set it on the realtime client before subscribing.
   useEffect(() => {
     const supabase = createClient();
-    const channel = supabase
-      .channel(`notifications:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          const row = payload.new as NotificationRow;
-          setItems((prev) => {
-            if (prev.some((n) => n.id === row.id)) return prev;
-            return [
-              {
-                id: row.id,
-                type: row.type,
-                title: row.title,
-                body: row.body,
-                readAt: row.read_at,
-                createdAt: row.created_at,
-              },
-              ...prev,
-            ];
-          });
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+
+    function addRow(row: NotificationRow) {
+      setItems((prev) => {
+        if (prev.some((n) => n.id === row.id)) return prev;
+        return [
+          {
+            id: row.id,
+            type: row.type,
+            title: row.title,
+            body: row.body,
+            readAt: row.read_at,
+            createdAt: row.created_at,
+          },
+          ...prev,
+        ];
+      });
+    }
+
+    (async () => {
+      // Authenticate the realtime socket with the current session token.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        await supabase.realtime.setAuth(session.access_token);
+      }
+      if (cancelled) return;
+
+      channel = supabase
+        .channel(`notifications:${userId}`, {
+          config: { private: false },
+        })
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => addRow(payload.new as NotificationRow)
+        )
+        .subscribe((status) => {
+          // Visible in the browser console to confirm the subscription state.
+          console.log("[notifications] realtime status:", status);
+        });
+    })();
+
+    // Keep the socket token fresh across auth refreshes.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token);
+      }
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      subscription.unsubscribe();
+      if (channel) supabase.removeChannel(channel);
     };
   }, [userId]);
 
