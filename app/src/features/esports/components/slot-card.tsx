@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Crown, Pencil, UserPlus, Link2, Trash2, Check, Search, Eye } from "lucide-react";
+import { Crown, Pencil, UserPlus, Link2, Trash2, Check, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { TeamSlot, RosterPlayer } from "@/lib/domain/types";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import {
   renameSlot,
   setCaptain,
   deleteSlot,
+  createSlotInvite,
 } from "../actions";
 
 /**
@@ -37,7 +38,26 @@ export function SlotCard({
   const [viewOpen, setViewOpen] = useState(false);
   const [labelValue, setLabelValue] = useState(slot.label);
   const [query, setQuery] = useState("");
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
+  const [generating, startGenerate] = useTransition();
   const [pending, start] = useTransition();
+
+  function generateInvite() {
+    startGenerate(async () => {
+      const res = await createSlotInvite(slot.slotId);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      const url = `${window.location.origin}/invite/${res.token}`;
+      setInviteLink(url);
+      await navigator.clipboard.writeText(url).catch(() => {});
+      setInviteCopied(true);
+      toast.success("Enlace generado y copiado");
+      setTimeout(() => setInviteCopied(false), 1500);
+    });
+  }
 
   const filled = Boolean(slot.membershipId);
 
@@ -108,7 +128,7 @@ export function SlotCard({
         fd.set("slotId", slot.slotId);
         return setCaptain({}, fd);
       },
-      "Capitán asignado",
+      "Responsable asignado",
       () => setEditOpen(false)
     );
   }
@@ -133,18 +153,8 @@ export function SlotCard({
         onViewClick={() => setViewOpen(true)}
       />
 
-      {/* Top-right actions: view (filled only) + edit */}
+      {/* Top-right action: edit (click the card itself to view the profile) */}
       <div className="absolute right-2 top-2 z-20 flex items-center gap-1">
-        {filled && (
-          <button
-            type="button"
-            onClick={() => setViewOpen(true)}
-            aria-label="Ver perfil del jugador"
-            className="flex h-7 w-7 items-center justify-center rounded-md border border-tc-border bg-[hsl(var(--tc-canvas)/0.8)] text-tc-fg-tertiary backdrop-blur transition-colors hover:border-tc-accent hover:text-tc-fg"
-          >
-            <Eye className="h-3.5 w-3.5" />
-          </button>
-        )}
         <button
           type="button"
           onClick={() => {
@@ -207,7 +217,7 @@ export function SlotCard({
               {slot.isCaptain ? (
                 <p className="flex items-center gap-2 text-sm text-[hsl(var(--tc-amber))]">
                   <Crown className="h-4 w-4" />
-                  Este jugador es el capitán.
+                  Este jugador es el responsable.
                 </p>
               ) : (
                 <Button
@@ -218,7 +228,7 @@ export function SlotCard({
                   className="gap-2"
                 >
                   <Crown className="h-4 w-4" />
-                  Marcar como capitán
+                  Marcar como responsable
                 </Button>
               )}
             </div>
@@ -324,10 +334,43 @@ export function SlotCard({
               <Link2 className="h-3.5 w-3.5" />
               Invitar por enlace
             </span>
-            <p className="text-sm text-tc-fg-muted">
-              Próximamente: genera un enlace para que un jugador nuevo se una con
-              Discord directamente en este slot.
+            <p className="text-xs text-tc-fg-muted">
+              Genera un enlace de un solo uso (24 h). Quien entre con Discord cae
+              directo en este slot.
             </p>
+            {inviteLink ? (
+              <div className="flex items-center gap-2 rounded-md border border-tc-border bg-tc-surface-1 p-2">
+                <span className="flex-1 truncate font-mono text-[11px] text-tc-fg-tertiary">
+                  {inviteLink}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(inviteLink);
+                    setInviteCopied(true);
+                    toast.success("Enlace copiado");
+                    setTimeout(() => setInviteCopied(false), 1500);
+                  }}
+                  className="gap-1.5"
+                >
+                  {inviteCopied ? <Check className="h-3.5 w-3.5" /> : <Link2 className="h-3.5 w-3.5" />}
+                  {inviteCopied ? "Copiado" : "Copiar"}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={generateInvite}
+                disabled={generating}
+                className="gap-2"
+              >
+                <Link2 className="h-4 w-4" />
+                {generating ? "Generando…" : "Generar enlace de invitación"}
+              </Button>
+            )}
           </div>
         </div>
       </Sheet>

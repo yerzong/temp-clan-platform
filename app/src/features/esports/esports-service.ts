@@ -182,6 +182,15 @@ export class EsportsService {
     return { ok: true, data: null };
   }
 
+  /** Create a single-use 24h invite link that fills a specific slot. */
+  async createSlotInvite(slotId: string): Promise<Result<string>> {
+    const { data, error } = await this.supabase.rpc("create_slot_invitation", {
+      p_slot_id: slotId,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: data as string };
+  }
+
   /** Game catalog as a slug -> cover_url map (for list/detail covers). */
   async getGameCovers(): Promise<Result<Record<string, string | null>>> {
     const { data, error } = await this.supabase

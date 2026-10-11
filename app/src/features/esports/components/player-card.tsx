@@ -109,7 +109,7 @@ export function PlayerCard({
           {slot.displayName}
         </p>
         <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-[hsl(var(--tc-accent-hover))]">
-          {slot.isCaptain ? "Capitán" : "Titular"}
+          {slot.isCaptain ? "Responsable" : "Titular"}
         </p>
       </div>
     </button>

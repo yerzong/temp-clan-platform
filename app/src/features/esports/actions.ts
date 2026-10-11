@@ -271,6 +271,25 @@ export async function deleteSlot(
   return {};
 }
 
+/** Create a single-use invite link that fills a specific slot. Returns token. */
+export async function createSlotInvite(
+  slotId: string
+): Promise<{ ok: true; token: string } | { ok: false; error: string }> {
+  if (!slotId) return { ok: false, error: "Falta el slot." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Debes iniciar sesión." };
+
+  const result = await new EsportsService(supabase).createSlotInvite(slotId);
+  if (!result.ok) return { ok: false, error: result.error };
+
+  revalidatePath("/dashboard/esports", "layout");
+  return { ok: true, token: result.data };
+}
+
 /** Set a team's slot count (grow/shrink). */
 export async function setSlotCount(
   _prev: ActionResult,

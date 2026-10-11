@@ -113,7 +113,7 @@ export function TeamList({
                     </span>
                   ) : (
                     <span className="text-[11px] text-tc-fg-muted">
-                      Sin capitán
+                      Sin responsable
                     </span>
                   )}
                 </div>

@@ -92,7 +92,7 @@ export default async function TeamDetailPage({
       <PageHeader
         eyebrow={GAME_LABELS[team.game] ?? team.game}
         title={team.name}
-        subtitle="Gestiona los slots del equipo: renómbralos, asigna jugadores y marca al capitán."
+        subtitle="Gestiona los slots del equipo: renómbralos, asigna jugadores y marca al responsable."
         actions={<TeamActions team={team} />}
       />
 
@@ -101,7 +101,7 @@ export default async function TeamDetailPage({
         <TeamMetric label="Titulares" value={`${team.rosterCount}/${team.maxSlots}`} />
         <TeamMetric label="Vacantes" value={team.maxSlots - team.rosterCount} />
         <TeamMetric
-          label="Capitán"
+          label="Responsable"
           value={captain ? captain.displayName ?? "—" : "Sin asignar"}
           tone={captain ? "accent" : "neutral"}
         />
