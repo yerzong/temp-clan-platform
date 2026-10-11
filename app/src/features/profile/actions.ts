@@ -30,6 +30,11 @@ export async function updateMyProfile(
   const org = await orgId();
   if (!org.ok) return { error: org.error };
 
+  // Combine dial code + local number into a single phone string.
+  const dial = String(formData.get("phoneDial") ?? "").trim();
+  const localNum = String(formData.get("phoneNumber") ?? "").trim();
+  const phone = localNum ? `${dial} ${localNum}`.trim() : "";
+
   const supabase = await createClient();
   const { error } = await supabase.rpc("update_my_profile", {
     p_org: org.orgId,
@@ -37,7 +42,7 @@ export async function updateMyProfile(
     p_username: String(formData.get("username") ?? "").trim(),
     p_birth_date: String(formData.get("birthDate") ?? "") || null,
     p_nationality: String(formData.get("nationality") ?? "").trim(),
-    p_phone: String(formData.get("phone") ?? "").trim(),
+    p_phone: phone,
     p_avatar_url: String(formData.get("avatarUrl") ?? "").trim(),
     p_privacy_accepted: formData.get("privacy") === "on",
   });
