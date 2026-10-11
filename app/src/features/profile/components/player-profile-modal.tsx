@@ -14,6 +14,7 @@ import {
 import type { MemberProfile } from "@/lib/domain/types";
 import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { LiveChip } from "@/components/ui/live-chip";
 import { toast } from "sonner";
 import { useTransition } from "react";
 import { BrandIcon } from "../brand-icon";
@@ -239,12 +240,7 @@ function AccountLine({
             {account.verified && (
               <BadgeCheck className="h-3.5 w-3.5 text-[hsl(var(--tc-success))]" />
             )}
-            {live && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-[hsl(var(--tc-destructive)/0.5)] bg-[hsl(var(--tc-destructive)/0.9)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
-                <span className="h-1 w-1 animate-pulse rounded-full bg-white" />
-                En vivo
-              </span>
-            )}
+            {live && <LiveChip />}
           </span>
           <span className="truncate font-mono text-[11px] text-tc-fg-muted">
             {account.handle}

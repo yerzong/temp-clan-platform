@@ -7,6 +7,7 @@ import type { Member } from "@/lib/domain/types";
 import { Badge } from "@/components/ui/badge";
 import { Sheet } from "@/components/ui/sheet";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { LiveChip } from "@/components/ui/live-chip";
 import { PlayerProfileModal } from "@/features/profile/components/player-profile-modal";
 import { deleteMember } from "../actions";
 import { EditMemberForm } from "./edit-member-form";
@@ -99,6 +100,7 @@ export function MemberCard({
             <span className="truncate font-medium text-tc-fg">
               {member.displayName}
             </span>
+            {isLive && <LiveChip />}
             {member.isLinked ? (
               <span
                 title="Cuenta real — se unió con Discord"
@@ -121,8 +123,12 @@ export function MemberCard({
             <Badge variant={member.role as RoleVariant}>
               {ROLE_LABELS[member.role] ?? member.role}
             </Badge>
-            {member.isPlayer && <Badge variant="player">jugador</Badge>}
-            {member.isCreator && <Badge variant="creator">creador</Badge>}
+            {member.isPlayer && member.role !== "player" && (
+              <Badge variant="player">jugador</Badge>
+            )}
+            {member.isCreator && member.role !== "creator" && (
+              <Badge variant="creator">creador</Badge>
+            )}
           </div>
         </div>
 
@@ -153,15 +159,6 @@ export function MemberCard({
             >
               <Trash2 className="h-4 w-4" />
             </button>
-          )}
-          {isLive && (
-            <span
-              title="En vivo"
-              className="ml-1 inline-flex items-center gap-1 rounded-full border border-[hsl(var(--tc-destructive)/0.5)] bg-[hsl(var(--tc-destructive)/0.9)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white"
-            >
-              <span className="h-1 w-1 animate-pulse rounded-full bg-white" />
-              En vivo
-            </span>
           )}
           <span className="ml-1 font-mono text-[11px] uppercase tracking-wider text-tc-fg-muted">
             {STATUS_LABELS[member.status] ?? member.status}
