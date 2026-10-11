@@ -47,15 +47,18 @@ export function NotificationBell({
 
   const unread = items.filter((n) => !n.readAt).length;
 
-  // Live updates via Realtime: listen for new notifications for this user.
-  // RLS-protected tables require the socket to carry the user's access token,
-  // so we set it on the realtime client before subscribing.
+  // Live updates via Realtime Broadcast. A DB trigger broadcasts new
+  // notifications to the per-user topic 'notif:<userId>'. Broadcast delivery is
+  // more reliable than postgres_changes under RLS. The socket must carry the
+  // user's access token so channel authorization (realtime.messages policy)
+  // allows this topic.
   useEffect(() => {
     const supabase = createClient();
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let cancelled = false;
 
     function addRow(row: NotificationRow) {
+      if (!row?.id) return;
       setItems((prev) => {
         if (prev.some((n) => n.id === row.id)) return prev;
         return [
@@ -73,7 +76,6 @@ export function NotificationBell({
     }
 
     (async () => {
-      // Authenticate the realtime socket with the current session token.
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -83,23 +85,14 @@ export function NotificationBell({
       if (cancelled) return;
 
       channel = supabase
-        .channel(`notifications:${userId}`, {
-          config: { private: false },
+        .channel(`notif:${userId}`, { config: { private: true } })
+        .on("broadcast", { event: "INSERT" }, (payload) => {
+          // realtime.broadcast_changes nests the row under payload.record.
+          const record = (payload.payload as { record?: NotificationRow })
+            ?.record;
+          if (record) addRow(record);
         })
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "notifications",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => addRow(payload.new as NotificationRow)
-        )
-        .subscribe((status) => {
-          // Visible in the browser console to confirm the subscription state.
-          console.log("[notifications] realtime status:", status);
-        });
+        .subscribe();
     })();
 
     // Keep the socket token fresh across auth refreshes.
