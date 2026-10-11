@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { NotificationService } from "@/features/notifications/notification-service";
+import { ProfileService } from "@/features/profile/profile-service";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { AppShell } from "@/components/layout/app-shell";
 import { SignOutButton } from "@/components/layout/sign-out-button";
@@ -41,6 +42,18 @@ export default async function DashboardLayout({
     user.id
   );
   const orgName = ctx.ok && ctx.data ? ctx.data.organization.name : null;
+
+  // Onboarding gate: if the user has a profile in an org but hasn't accepted
+  // the privacy notice yet, send them to complete their profile first.
+  if (ctx.ok && ctx.data) {
+    const prof = await new ProfileService(supabase).getMyProfile(
+      ctx.data.organization.id,
+      user.id
+    );
+    if (prof.ok && prof.data && !prof.data.privacyAccepted) {
+      redirect("/onboarding");
+    }
+  }
 
   const notifRes = await new NotificationService(supabase).list();
   const notifications = notifRes.ok ? notifRes.data : [];

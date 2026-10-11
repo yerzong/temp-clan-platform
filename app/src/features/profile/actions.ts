@@ -8,6 +8,39 @@ import type { MemberProfile } from "@/lib/domain/types";
 
 export type ActionResult = { error?: string };
 
+/** Complete onboarding: save profile basics + accept privacy, then enter. */
+export async function completeOnboarding(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  if (formData.get("privacy") !== "on") {
+    return { error: "Debes aceptar el aviso de privacidad para continuar." };
+  }
+
+  const org = await orgId();
+  if (!org.ok) return { error: org.error };
+
+  const dial = String(formData.get("phoneDial") ?? "").trim();
+  const localNum = String(formData.get("phoneNumber") ?? "").trim();
+  const phone = localNum ? `${dial} ${localNum}`.trim() : "";
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_my_profile", {
+    p_org: org.orgId,
+    p_display_name: String(formData.get("displayName") ?? "").trim(),
+    p_username: String(formData.get("username") ?? "").trim(),
+    p_birth_date: String(formData.get("birthDate") ?? "") || null,
+    p_nationality: String(formData.get("nationality") ?? "").trim(),
+    p_phone: phone,
+    p_avatar_url: String(formData.get("avatarUrl") ?? "").trim(),
+    p_privacy_accepted: true,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard");
+  return {};
+}
+
 /** Fetch a member's full profile (for the player-detail view modal). */
 export async function fetchPlayerProfile(
   membershipId: string
