@@ -120,15 +120,13 @@ export function MemberCard({
             )}
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
-            <Badge variant={member.role as RoleVariant}>
-              {ROLE_LABELS[member.role] ?? member.role}
-            </Badge>
-            {member.isPlayer && member.role !== "player" && (
-              <Badge variant="player">jugador</Badge>
+            {member.isOwner && <Badge variant="owner">Dueño</Badge>}
+            {member.isAdmin && !member.isOwner && (
+              <Badge variant="admin">Admin</Badge>
             )}
-            {member.isCreator && member.role !== "creator" && (
-              <Badge variant="creator">creador</Badge>
-            )}
+            {member.isStaff && <Badge variant="staff">Staff</Badge>}
+            {member.isPlayer && <Badge variant="player">Jugador</Badge>}
+            {member.isCreator && <Badge variant="creator">Creador</Badge>}
           </div>
         </div>
 

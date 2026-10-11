@@ -4,87 +4,115 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "./member-service";
-import type { MemberRole } from "@/lib/domain/types";
 
 export type ActionResult = { error?: string };
 
-const VALID_ROLES: MemberRole[] = [
-  "owner",
-  "admin",
-  "staff",
-  "creator",
-  "player",
-];
+function readFunctions(formData: FormData) {
+  return {
+    displayName: String(formData.get("displayName") ?? "").trim(),
+    isStaff: formData.get("isStaff") === "on",
+    isPlayer: formData.get("isPlayer") === "on",
+    isCreator: formData.get("isCreator") === "on",
+    isAdmin: formData.get("isAdmin") === "on",
+  };
+}
 
-/** Add a manual member (roster entry) to the current user's organization. */
+/** Add a manual member (roster entry) with functions + admin permission. */
 export async function addMember(
   _prev: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
-  const displayName = String(formData.get("displayName") ?? "").trim();
-  const role = String(formData.get("role") ?? "") as MemberRole;
-  const isCreator = formData.get("isCreator") === "on";
-  const isPlayer = formData.get("isPlayer") === "on";
-
-  if (!displayName) return { error: "Member name is required." };
-  if (!VALID_ROLES.includes(role)) return { error: "Select a valid role." };
+  const fns = readFunctions(formData);
+  if (!fns.displayName) return { error: "El nombre es obligatorio." };
+  if (!fns.isStaff && !fns.isPlayer && !fns.isCreator) {
+    return { error: "Elige al menos una función (staff, jugador o creador)." };
+  }
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  if (!user) return { error: "Debes iniciar sesión." };
 
-  const orgService = new OrganizationService(supabase);
-  const ctx = await orgService.getCurrentOrgContext(user.id);
+  const ctx = await new OrganizationService(supabase).getCurrentOrgContext(
+    user.id
+  );
   if (!ctx.ok) return { error: ctx.error };
-  if (!ctx.data) return { error: "You have no organization yet." };
+  if (!ctx.data) return { error: "Aún no tienes una organización." };
 
-  const memberService = new MemberService(supabase);
-  const result = await memberService.addMember(ctx.data.organization.id, {
-    displayName,
-    role,
-    isCreator,
-    isPlayer,
-  });
-
+  const result = await new MemberService(supabase).addMember(
+    ctx.data.organization.id,
+    fns
+  );
   if (!result.ok) return { error: result.error };
 
+  revalidatePath("/dashboard/members");
   revalidatePath("/dashboard");
   return {};
 }
 
-/** Update an existing member's role and attributes. */
+/** Update a member's name, functions and admin permission. */
 export async function updateMember(
   _prev: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   const membershipId = String(formData.get("membershipId") ?? "");
-  const displayName = String(formData.get("displayName") ?? "").trim();
-  const role = String(formData.get("role") ?? "") as MemberRole;
-  const isCreator = formData.get("isCreator") === "on";
-  const isPlayer = formData.get("isPlayer") === "on";
+  if (!membershipId) return { error: "Falta el miembro." };
 
-  if (!membershipId) return { error: "Missing member." };
-  if (!displayName) return { error: "Member name is required." };
-  if (!VALID_ROLES.includes(role)) return { error: "Select a valid role." };
+  const fns = readFunctions(formData);
+  if (!fns.displayName) return { error: "El nombre es obligatorio." };
+  if (!fns.isStaff && !fns.isPlayer && !fns.isCreator) {
+    return { error: "Elige al menos una función (staff, jugador o creador)." };
+  }
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  if (!user) return { error: "Debes iniciar sesión." };
 
-  const result = await new MemberService(supabase).updateMember(membershipId, {
-    displayName,
-    role,
-    isCreator,
-    isPlayer,
-  });
-
+  const result = await new MemberService(supabase).updateMember(
+    membershipId,
+    fns
+  );
   if (!result.ok) return { error: result.error };
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/members");
+  return {};
+}
+
+/** Admin edits a member's full profile (contact + identity). */
+export async function updateMemberProfile(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const membershipId = String(formData.get("membershipId") ?? "");
+  if (!membershipId) return { error: "Falta el miembro." };
+
+  const dial = String(formData.get("phoneDial") ?? "").trim();
+  const localNum = String(formData.get("phoneNumber") ?? "").trim();
+  const phone = localNum ? `${dial} ${localNum}`.trim() : "";
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Debes iniciar sesión." };
+
+  const result = await new MemberService(supabase).updateMemberProfile(
+    membershipId,
+    {
+      username: String(formData.get("username") ?? "").trim(),
+      email: String(formData.get("email") ?? "").trim(),
+      birthDate: String(formData.get("birthDate") ?? "") || null,
+      nationality: String(formData.get("nationality") ?? "").trim(),
+      phone,
+      avatarUrl: String(formData.get("avatarUrl") ?? "").trim(),
+    }
+  );
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/members");
   return {};
 }
 
@@ -94,17 +122,18 @@ export async function deleteMember(
   formData: FormData
 ): Promise<ActionResult> {
   const membershipId = String(formData.get("membershipId") ?? "");
-  if (!membershipId) return { error: "Missing member." };
+  if (!membershipId) return { error: "Falta el miembro." };
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  if (!user) return { error: "Debes iniciar sesión." };
 
   const result = await new MemberService(supabase).deleteMember(membershipId);
   if (!result.ok) return { error: result.error };
 
+  revalidatePath("/dashboard/members");
   revalidatePath("/dashboard");
   return {};
 }

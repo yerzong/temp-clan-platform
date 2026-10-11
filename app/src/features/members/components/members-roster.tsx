@@ -1,6 +1,6 @@
 "use client";
 
-import { Shield, Swords, Clapperboard, Users } from "lucide-react";
+import { Shield, Swords, Clapperboard, Users, UserCog } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Member } from "@/lib/domain/types";
 import { usePagination } from "@/lib/use-pagination";
@@ -23,53 +23,24 @@ interface RoleGroup {
 }
 
 function groupByRole(members: Member[]): RoleGroup[] {
-  const staff: Member[] = [];
-  const players: Member[] = [];
-  const creators: Member[] = [];
+  // Functions can combine, so a member may appear in several groups. A member
+  // with no function at all falls into Staff so nobody disappears.
+  const staff = members.filter((m) => m.isStaff || (!m.isPlayer && !m.isCreator));
+  const players = members.filter((m) => m.isPlayer);
+  const creators = members.filter((m) => m.isCreator);
+  const admins = members.filter((m) => m.isAdmin);
 
-  for (const m of members) {
-    const isStaffCore =
-      m.role === "owner" || m.role === "admin" || m.role === "staff";
-
-    if (m.isPlayer) {
-      players.push(m);
-    } else if (m.isCreator) {
-      creators.push(m);
-    } else if (isStaffCore) {
-      staff.push(m);
-    } else {
-      // Fallback: a member with no player/creator attribute and a non-staff
-      // role still needs a home — treat as staff so nobody disappears.
-      staff.push(m);
-    }
-  }
-
-  return [
-    {
-      key: "staff",
-      label: "Staff",
-      hint: "Dueños, admins y staff",
-      icon: Shield,
-      members: staff,
-    },
-    {
-      key: "players",
-      label: "Jugadores",
-      hint: "Compiten en equipos",
-      icon: Swords,
-      members: players,
-    },
-    {
-      key: "creators",
-      label: "Creadores",
-      hint: "Producen contenido",
-      icon: Clapperboard,
-      members: creators,
-    },
+  const groups: RoleGroup[] = [
+    { key: "admins", label: "Admin", hint: "Gestionan la organización", icon: UserCog, members: admins },
+    { key: "staff", label: "Staff", hint: "Operan la organización", icon: Shield, members: staff },
+    { key: "players", label: "Jugadores", hint: "Compiten en equipos", icon: Swords, members: players },
+    { key: "creators", label: "Creadores", hint: "Producen contenido", icon: Clapperboard, members: creators },
   ];
+  // Hide empty groups so "all" view stays clean.
+  return groups.filter((g) => g.members.length > 0);
 }
 
-export type RoleFilter = "all" | "staff" | "players" | "creators";
+export type RoleFilter = "all" | "admins" | "staff" | "players" | "creators";
 
 export function MembersRoster({
   members,

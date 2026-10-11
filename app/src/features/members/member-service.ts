@@ -1,6 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Member, Result, MemberRole } from "@/lib/domain/types";
 
+/** Member functions + admin permission used by add/update. */
+export interface MemberFunctions {
+  displayName: string;
+  isStaff: boolean;
+  isPlayer: boolean;
+  isCreator: boolean;
+  isAdmin: boolean;
+}
+
 /**
  * Member service — owns member-level data access: listing and adding members
  * within an organization. Single responsibility: members (orgs live in
@@ -14,7 +23,7 @@ export class MemberService {
     const { data, error } = await this.supabase
       .from("memberships")
       .select(
-        "id, user_id, role, status, member_profiles ( display_name, username, email, avatar_url, is_creator, is_player, bio )"
+        "id, user_id, role, status, member_profiles ( display_name, username, email, avatar_url, is_staff, is_creator, is_player, bio )"
       )
       .eq("org_id", orgId)
       .order("created_at", { ascending: false });
@@ -27,18 +36,23 @@ export class MemberService {
         username?: string | null;
         email?: string | null;
         avatar_url?: string | null;
+        is_staff?: boolean;
         is_creator?: boolean;
         is_player?: boolean;
         bio?: string | null;
       };
+      const role = row.role as MemberRole;
       return {
         membershipId: row.id as string,
-        role: row.role as MemberRole,
+        role,
+        isAdmin: role === "admin" || role === "owner",
+        isOwner: role === "owner",
         status: row.status as Member["status"],
         displayName: profile.display_name ?? "Unnamed",
         username: profile.username ?? null,
         email: profile.email ?? null,
         avatarUrl: profile.avatar_url ?? null,
+        isStaff: profile.is_staff ?? false,
         isCreator: profile.is_creator ?? false,
         isPlayer: profile.is_player ?? false,
         bio: profile.bio ?? null,
@@ -50,66 +64,62 @@ export class MemberService {
     return { ok: true, data: members };
   }
 
-  /** Add a manual member record (roster entry; not a login invite). */
+  /** Add a manual member (roster entry) with functions + admin permission. */
   async addMember(
     orgId: string,
-    input: {
-      displayName: string;
-      role: MemberRole;
-      isCreator: boolean;
-      isPlayer: boolean;
-    }
+    input: MemberFunctions
   ): Promise<Result<string>> {
     const { data, error } = await this.supabase.rpc("add_org_member", {
       target_org: orgId,
       p_display_name: input.displayName,
-      p_role: input.role,
-      p_is_creator: input.isCreator,
+      p_is_staff: input.isStaff,
       p_is_player: input.isPlayer,
+      p_is_creator: input.isCreator,
+      p_is_admin: input.isAdmin,
     });
-
     if (error) return { ok: false, error: error.message };
     return { ok: true, data: data as string };
   }
 
-  /** Update a member's role and profile attributes. */
+  /** Update a member's name, functions and admin permission (admin only). */
   async updateMember(
     membershipId: string,
+    input: MemberFunctions
+  ): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("admin_update_member", {
+      p_membership_id: membershipId,
+      p_display_name: input.displayName,
+      p_is_staff: input.isStaff,
+      p_is_player: input.isPlayer,
+      p_is_creator: input.isCreator,
+      p_is_admin: input.isAdmin,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Admin edits a member's full profile (contact + identity fields). */
+  async updateMemberProfile(
+    membershipId: string,
     input: {
-      displayName: string;
-      role: MemberRole;
-      isCreator: boolean;
-      isPlayer: boolean;
+      username: string;
+      email: string;
+      birthDate: string | null;
+      nationality: string;
+      phone: string;
+      avatarUrl: string;
     }
   ): Promise<Result<null>> {
-    // Guard: do not allow changing the owner's role away from owner.
-    const { data: current, error: readError } = await this.supabase
-      .from("memberships")
-      .select("role")
-      .eq("id", membershipId)
-      .single();
-
-    if (readError) return { ok: false, error: readError.message };
-    if (current.role === "owner" && input.role !== "owner") {
-      return { ok: false, error: "You cannot change the owner's role." };
-    }
-
-    const { error: roleError } = await this.supabase
-      .from("memberships")
-      .update({ role: input.role })
-      .eq("id", membershipId);
-    if (roleError) return { ok: false, error: roleError.message };
-
-    const { error: profileError } = await this.supabase
-      .from("member_profiles")
-      .update({
-        display_name: input.displayName,
-        is_creator: input.isCreator,
-        is_player: input.isPlayer,
-      })
-      .eq("membership_id", membershipId);
-    if (profileError) return { ok: false, error: profileError.message };
-
+    const { error } = await this.supabase.rpc("admin_update_member_profile", {
+      p_membership_id: membershipId,
+      p_username: input.username,
+      p_email: input.email,
+      p_birth_date: input.birthDate,
+      p_nationality: input.nationality,
+      p_phone: input.phone,
+      p_avatar_url: input.avatarUrl,
+    });
+    if (error) return { ok: false, error: error.message };
     return { ok: true, data: null };
   }
 

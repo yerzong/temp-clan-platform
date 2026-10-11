@@ -12,6 +12,7 @@ import { AddMemberForm } from "./add-member-form";
 
 const FILTERS: { key: RoleFilter; label: string }[] = [
   { key: "all", label: "Todos" },
+  { key: "admins", label: "Admin" },
   { key: "staff", label: "Staff" },
   { key: "players", label: "Jugadores" },
   { key: "creators", label: "Creadores" },

@@ -18,11 +18,16 @@ export interface Organization {
 export interface Member {
   membershipId: string;
   role: MemberRole;
+  /** Permission level derived from role. */
+  isAdmin: boolean;
+  isOwner: boolean;
   status: MembershipStatus;
   displayName: string;
   username: string | null;
   email: string | null;
   avatarUrl: string | null;
+  /** Functions (independent, can combine). */
+  isStaff: boolean;
   isCreator: boolean;
   isPlayer: boolean;
   bio: string | null;
