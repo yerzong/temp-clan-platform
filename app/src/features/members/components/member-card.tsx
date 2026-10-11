@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, BadgeCheck, UserPen } from "lucide-react";
 import { toast } from "sonner";
 import type { Member } from "@/lib/domain/types";
 import { Badge } from "@/components/ui/badge";
@@ -87,9 +87,28 @@ export function MemberCard({ member }: { member: Member }) {
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="truncate font-medium text-tc-fg">
-            {member.displayName}
-          </span>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-medium text-tc-fg">
+              {member.displayName}
+            </span>
+            {member.isLinked ? (
+              <span
+                title="Cuenta real — se unió con Discord"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[hsl(var(--tc-success)/0.3)] bg-[hsl(var(--tc-success)/0.12)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--tc-success))]"
+              >
+                <BadgeCheck className="h-3 w-3" />
+                Cuenta
+              </span>
+            ) : (
+              <span
+                title="Registro local — sin cuenta vinculada todavía"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-tc-border bg-tc-surface-2 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-tc-fg-tertiary"
+              >
+                <UserPen className="h-3 w-3" />
+                Local
+              </span>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge variant={member.role as RoleVariant}>
               {ROLE_LABELS[member.role] ?? member.role}

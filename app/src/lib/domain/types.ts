@@ -24,6 +24,12 @@ export interface Member {
   isCreator: boolean;
   isPlayer: boolean;
   bio: string | null;
+  /**
+   * True when this membership is backed by a real auth account (joined via an
+   * invitation / Discord login). False for manual roster entries created with
+   * "add member" that have no login yet.
+   */
+  isLinked: boolean;
 }
 
 /** The current user's context within an organization. */
