@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
 import { EsportsService } from "@/features/esports/esports-service";
+import { getLiveLogins } from "@/features/esports/twitch-service";
 import { SlotCard } from "@/features/esports/components/slot-card";
 import { AddSlotCard } from "@/features/esports/components/add-slot-card";
 import { TeamActions } from "@/features/esports/components/team-actions";
@@ -79,6 +80,22 @@ export default async function TeamDetailPage({
       position: null,
     }));
 
+  // Which rostered players are live on Twitch right now?
+  const rosterIds = team.slots
+    .map((s) => s.membershipId)
+    .filter(Boolean) as string[];
+  const liveMemberIds = new Set<string>();
+  if (rosterIds.length > 0) {
+    const handlesRes = await esports.getTwitchHandles(rosterIds);
+    if (handlesRes.ok && handlesRes.data.length > 0) {
+      const liveLogins = await getLiveLogins(handlesRes.data.map((h) => h.handle));
+      for (const { membershipId, handle } of handlesRes.data) {
+        const login = handle.trim().toLowerCase().replace(/^@/, "").replace(/.*twitch\.tv\//, "");
+        if (liveLogins.has(login)) liveMemberIds.add(membershipId);
+      }
+    }
+  }
+
   return (
     <div>
       <Link
@@ -118,6 +135,7 @@ export default async function TeamDetailPage({
             slot={slot}
             available={available}
             canVerify={canVerify}
+            isLive={slot.membershipId ? liveMemberIds.has(slot.membershipId) : false}
           />
         ))}
         <AddSlotCard teamId={team.id} />

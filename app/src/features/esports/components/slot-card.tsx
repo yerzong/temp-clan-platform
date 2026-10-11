@@ -28,10 +28,12 @@ export function SlotCard({
   slot,
   available,
   canVerify = false,
+  isLive = false,
 }: {
   slot: TeamSlot;
   available: RosterPlayer[];
   canVerify?: boolean;
+  isLive?: boolean;
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
@@ -149,6 +151,7 @@ export function SlotCard({
     <div className="relative">
       <PlayerCard
         slot={slot}
+        isLive={isLive}
         onEmptyClick={() => setAssignOpen(true)}
         onViewClick={() => setViewOpen(true)}
       />

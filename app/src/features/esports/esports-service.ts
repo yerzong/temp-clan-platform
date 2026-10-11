@@ -182,6 +182,29 @@ export class EsportsService {
     return { ok: true, data: null };
   }
 
+  /**
+   * Twitch handles for a set of memberships: returns [membershipId, handle].
+   * Used to resolve which players are live.
+   */
+  async getTwitchHandles(
+    membershipIds: string[]
+  ): Promise<Result<{ membershipId: string; handle: string }[]>> {
+    if (membershipIds.length === 0) return { ok: true, data: [] };
+    const { data, error } = await this.supabase
+      .from("linked_accounts")
+      .select("membership_id, handle")
+      .eq("platform", "twitch")
+      .in("membership_id", membershipIds);
+    if (error) return { ok: false, error: error.message };
+    return {
+      ok: true,
+      data: (data ?? []).map((r) => ({
+        membershipId: r.membership_id as string,
+        handle: r.handle as string,
+      })),
+    };
+  }
+
   /** Create a single-use 24h invite link that fills a specific slot. */
   async createSlotInvite(slotId: string): Promise<Result<string>> {
     const { data, error } = await this.supabase.rpc("create_slot_invitation", {
