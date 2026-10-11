@@ -122,12 +122,16 @@ export class MemberService {
       return { ok: false, error: "You cannot remove the owner." };
     }
 
-    const { error } = await this.supabase
+    const { data: deleted, error } = await this.supabase
       .from("memberships")
       .delete()
-      .eq("id", membershipId);
+      .eq("id", membershipId)
+      .select("id");
 
     if (error) return { ok: false, error: error.message };
+    if (!deleted || deleted.length === 0) {
+      return { ok: false, error: "No se pudo eliminar el miembro (permisos)." };
+    }
     return { ok: true, data: null };
   }
 }

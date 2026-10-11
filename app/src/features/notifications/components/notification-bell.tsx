@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Bell, Inbox } from "lucide-react";
 import type { AppNotification } from "@/lib/domain/types";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { markNotificationsRead } from "../actions";
 
@@ -18,21 +19,71 @@ function relativeTime(iso: string): string {
   return `hace ${days} d`;
 }
 
+interface NotificationRow {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
 /**
- * Top-bar notification bell. Shows an unread count badge and a dropdown panel
- * with recent notifications. Opening the panel marks everything read. Closes
- * on outside click or Escape.
+ * Top-bar notification bell. Seeds from a server-provided list, then subscribes
+ * to Supabase Realtime so new notifications arrive live (no page reload).
+ * Shows an unread count and a dropdown; opening it marks everything read.
  */
 export function NotificationBell({
-  notifications,
+  notifications: initial,
+  userId,
 }: {
   notifications: AppNotification[];
+  userId: string;
 }) {
+  const [items, setItems] = useState<AppNotification[]>(initial);
   const [open, setOpen] = useState(false);
   const [, startRead] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
 
-  const unread = notifications.filter((n) => !n.readAt).length;
+  const unread = items.filter((n) => !n.readAt).length;
+
+  // Live updates via Realtime: listen for new notifications for this user.
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const row = payload.new as NotificationRow;
+          setItems((prev) => {
+            if (prev.some((n) => n.id === row.id)) return prev;
+            return [
+              {
+                id: row.id,
+                type: row.type,
+                title: row.title,
+                body: row.body,
+                readAt: row.read_at,
+                createdAt: row.created_at,
+              },
+              ...prev,
+            ];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   // Mark read when the panel opens with unread items.
   useEffect(() => {
@@ -40,6 +91,12 @@ export function NotificationBell({
       startRead(async () => {
         await markNotificationsRead();
       });
+      // Optimistically clear unread locally.
+      setItems((prev) =>
+        prev.map((n) =>
+          n.readAt ? n : { ...n, readAt: new Date().toISOString() }
+        )
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -88,7 +145,7 @@ export function NotificationBell({
           </div>
 
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {items.length === 0 ? (
               <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
                 <Inbox className="h-5 w-5 text-tc-fg-muted" />
                 <p className="text-sm text-tc-fg-tertiary">
@@ -96,7 +153,7 @@ export function NotificationBell({
                 </p>
               </div>
             ) : (
-              notifications.map((n) => (
+              items.map((n) => (
                 <div
                   key={n.id}
                   className={cn(

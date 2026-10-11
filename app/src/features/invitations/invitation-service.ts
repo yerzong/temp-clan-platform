@@ -144,14 +144,22 @@ export class InvitationService {
     return { ok: true, data: null };
   }
 
-  /** Permanently delete an invitation. */
+  /** Permanently delete an invitation. Confirms a row was actually removed. */
   async deleteInvitation(invitationId: string): Promise<Result<null>> {
-    const { error } = await this.supabase
+    const { data, error } = await this.supabase
       .from("invitations")
       .delete()
-      .eq("id", invitationId);
+      .eq("id", invitationId)
+      .select("id");
 
     if (error) return { ok: false, error: error.message };
+    // RLS can silently delete zero rows; surface that instead of a false success.
+    if (!data || data.length === 0) {
+      return {
+        ok: false,
+        error: "No se pudo eliminar la invitación (permisos).",
+      };
+    }
     return { ok: true, data: null };
   }
 

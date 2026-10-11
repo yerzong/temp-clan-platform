@@ -49,7 +49,7 @@ export default async function DashboardLayout({
       userName={userName}
       actions={
         <div className="flex items-center gap-2">
-          <NotificationBell notifications={notifications} />
+          <NotificationBell notifications={notifications} userId={user.id} />
           <SignOutButton />
         </div>
       }
