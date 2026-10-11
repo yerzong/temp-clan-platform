@@ -10,42 +10,87 @@ interface NotificationRow {
   created_at: string;
 }
 
+function toNotification(r: NotificationRow): AppNotification {
+  return {
+    id: r.id,
+    type: r.type,
+    title: r.title,
+    body: r.body,
+    readAt: r.read_at,
+    createdAt: r.created_at,
+  };
+}
+
+const SELECT = "id, type, title, body, read_at, created_at";
+
 /**
- * Notification service — reads the current user's notifications and marks them
- * read. Rows are written only by DB functions (e.g. redeem_invitation), never
- * directly by clients.
+ * Notification service. The bell panel shows non-dismissed notifications; the
+ * log page shows all of them. Rows are written only by DB functions; the user
+ * can dismiss (hide from panel) or delete (remove from log) their own.
  */
 export class NotificationService {
   constructor(private readonly supabase: SupabaseClient) {}
 
-  /** The current user's notifications, newest first. */
+  /** Non-dismissed notifications for the bell panel, newest first. */
   async list(limit = 30): Promise<Result<AppNotification[]>> {
     const { data, error } = await this.supabase
       .from("notifications")
-      .select("id, type, title, body, read_at, created_at")
+      .select(SELECT)
+      .is("dismissed_at", null)
       .order("created_at", { ascending: false })
       .limit(limit);
 
     if (error) return { ok: false, error: error.message };
+    return { ok: true, data: (data ?? []).map((r) => toNotification(r as NotificationRow)) };
+  }
 
-    const items: AppNotification[] = (data ?? []).map((r) => {
-      const row = r as NotificationRow;
-      return {
-        id: row.id,
-        type: row.type,
-        title: row.title,
-        body: row.body,
-        readAt: row.read_at,
-        createdAt: row.created_at,
-      };
-    });
+  /** All notifications (the log / bitácora), newest first. */
+  async listAll(limit = 200): Promise<Result<AppNotification[]>> {
+    const { data, error } = await this.supabase
+      .from("notifications")
+      .select(SELECT)
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
-    return { ok: true, data: items };
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: (data ?? []).map((r) => toNotification(r as NotificationRow)) };
   }
 
   /** Mark all of the current user's notifications as read. */
   async markAllRead(): Promise<Result<null>> {
     const { error } = await this.supabase.rpc("mark_notifications_read");
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Hide a single notification from the bell panel (keeps it in the log). */
+  async dismiss(id: string): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("dismiss_notification", {
+      notif_id: id,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Hide all notifications from the bell panel. */
+  async dismissAll(): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("dismiss_all_notifications");
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Permanently delete a single notification from the log. */
+  async delete(id: string): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("delete_notification", {
+      notif_id: id,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Permanently delete all of the current user's notifications. */
+  async deleteAll(): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("delete_all_notifications");
     if (error) return { ok: false, error: error.message };
     return { ok: true, data: null };
   }

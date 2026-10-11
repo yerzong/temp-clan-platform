@@ -1,11 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Bell, Inbox } from "lucide-react";
+import Link from "next/link";
+import { Bell, Inbox, X } from "lucide-react";
 import type { AppNotification } from "@/lib/domain/types";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { markNotificationsRead } from "../actions";
+import {
+  markNotificationsRead,
+  dismissNotification,
+  dismissAllNotifications,
+} from "../actions";
 
 /** Short relative time in Spanish: "hace 3 h", "hace 2 d", "ahora". */
 function relativeTime(iso: string): string {
@@ -146,6 +151,21 @@ export function NotificationBell({
     };
   }, [open]);
 
+  function dismissOne(id: string) {
+    // Optimistically remove from the panel, then persist.
+    setItems((prev) => prev.filter((n) => n.id !== id));
+    startRead(async () => {
+      await dismissNotification(id);
+    });
+  }
+
+  function dismissEverything() {
+    setItems([]);
+    startRead(async () => {
+      await dismissAllNotifications();
+    });
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -164,10 +184,19 @@ export function NotificationBell({
 
       {open && (
         <div className="tc-animate-in absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-lg border border-tc-border-strong bg-tc-surface-1 shadow-2xl">
-          <div className="border-b border-tc-border px-4 py-3">
+          <div className="flex items-center justify-between gap-2 border-b border-tc-border px-4 py-3">
             <span className="font-mono text-[11px] uppercase tracking-wider text-tc-fg-secondary">
               Notificaciones
             </span>
+            {items.length > 0 && (
+              <button
+                type="button"
+                onClick={dismissEverything}
+                className="text-[11px] text-tc-fg-tertiary transition-colors hover:text-tc-fg"
+              >
+                Limpiar
+              </button>
+            )}
           </div>
 
           <div className="max-h-96 overflow-y-auto">
@@ -183,11 +212,11 @@ export function NotificationBell({
                 <div
                   key={n.id}
                   className={cn(
-                    "flex flex-col gap-0.5 border-b border-tc-border-soft px-4 py-3 last:border-b-0",
+                    "group/item relative flex flex-col gap-0.5 border-b border-tc-border-soft px-4 py-3 last:border-b-0",
                     !n.readAt && "bg-[hsl(var(--tc-accent)/0.05)]"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start justify-between gap-2 pr-6">
                     <span className="text-sm font-medium text-tc-fg">
                       {n.title}
                     </span>
@@ -196,12 +225,30 @@ export function NotificationBell({
                     </span>
                   </div>
                   {n.body && (
-                    <span className="text-xs text-tc-fg-tertiary">{n.body}</span>
+                    <span className="pr-6 text-xs text-tc-fg-tertiary">
+                      {n.body}
+                    </span>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => dismissOne(n.id)}
+                    aria-label="Quitar notificación"
+                    className="absolute right-2 top-2.5 rounded p-1 text-tc-fg-muted opacity-0 transition-all hover:bg-tc-surface-2 hover:text-tc-fg group-hover/item:opacity-100"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               ))
             )}
           </div>
+
+          <Link
+            href="/dashboard/notifications"
+            onClick={() => setOpen(false)}
+            className="block border-t border-tc-border px-4 py-2.5 text-center text-[11px] font-medium uppercase tracking-wider text-tc-fg-tertiary transition-colors hover:bg-tc-surface-2 hover:text-tc-fg"
+          >
+            Ver todas
+          </Link>
         </div>
       )}
     </div>
