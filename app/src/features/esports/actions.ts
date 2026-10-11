@@ -270,3 +270,23 @@ export async function deleteSlot(
   revalidatePath("/dashboard/esports", "layout");
   return {};
 }
+
+/** Set a team's slot count (grow/shrink). */
+export async function setSlotCount(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const teamId = String(formData.get("teamId") ?? "");
+  const count = Number(formData.get("count"));
+  if (!teamId) return { error: "Falta el equipo." };
+  if (!Number.isInteger(count) || count < 1 || count > 20) {
+    return { error: "El número de slots debe estar entre 1 y 20." };
+  }
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).setSlotCount(teamId, count);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports", "layout");
+  return {};
+}

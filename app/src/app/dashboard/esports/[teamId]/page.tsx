@@ -6,6 +6,7 @@ import { OrganizationService } from "@/features/organizations/organization-servi
 import { MemberService } from "@/features/members/member-service";
 import { EsportsService } from "@/features/esports/esports-service";
 import { SlotCard } from "@/features/esports/components/slot-card";
+import { AddSlotCard } from "@/features/esports/components/add-slot-card";
 import { TeamActions } from "@/features/esports/components/team-actions";
 import { GAME_LABELS } from "@/features/esports/components/team-list";
 import { Card, CardContent } from "@/components/ui/card";
@@ -113,6 +114,7 @@ export default async function TeamDetailPage({
         {team.slots.map((slot) => (
           <SlotCard key={slot.slotId} slot={slot} available={available} />
         ))}
+        <AddSlotCard teamId={team.id} />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { Team } from "@/lib/domain/types";
 import { useActionToast } from "@/lib/use-action-toast";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet } from "@/components/ui/sheet";
-import { updateTeam, addSlot, type ActionResult } from "../actions";
+import { updateTeam, addSlot, setSlotCount, type ActionResult } from "../actions";
 
 const initialState: ActionResult = {};
 
@@ -29,9 +29,23 @@ export function TeamActions({ team }: { team: Team }) {
   const [editOpen, setEditOpen] = useState(false);
   const [state, formAction, pending] = useActionState(updateTeam, initialState);
   const [adding, startAdd] = useTransition();
+  const [resizing, startResize] = useTransition();
+  const [slotCount, setSlotCountValue] = useState(team.maxSlots);
   const wasPending = useRef(false);
 
   useActionToast(state, pending, "Equipo actualizado");
+
+  function applySlotCount() {
+    if (slotCount === team.maxSlots) return;
+    startResize(async () => {
+      const fd = new FormData();
+      fd.set("teamId", team.id);
+      fd.set("count", String(slotCount));
+      const res = await setSlotCount({}, fd);
+      if (res?.error) toast.error(res.error);
+      else toast.success("Slots actualizados");
+    });
+  }
 
   useEffect(() => {
     if (wasPending.current && !pending && !state.error) setEditOpen(false);
@@ -128,6 +142,36 @@ export function TeamActions({ team }: { team: Team }) {
             {pending ? "Guardando..." : "Guardar cambios"}
           </Button>
         </form>
+
+        {/* Slot count — separate action (grows/shrinks the roster) */}
+        <div className="mt-6 flex flex-col gap-1.5 border-t border-tc-border-soft pt-5">
+          <Label htmlFor="et-slots">Número de slots</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="et-slots"
+              type="number"
+              min={1}
+              max={20}
+              value={slotCount}
+              onChange={(e) => setSlotCountValue(Number(e.target.value))}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={applySlotCount}
+              disabled={resizing || slotCount === team.maxSlots}
+              className="gap-1.5"
+            >
+              <Check className="h-4 w-4" />
+              Aplicar
+            </Button>
+          </div>
+          <p className="text-[11px] text-tc-fg-muted">
+            Al reducir solo se quitan slots vacíos; nunca saca a un jugador
+            asignado.
+          </p>
+        </div>
       </Sheet>
     </div>
   );

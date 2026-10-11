@@ -172,6 +172,29 @@ export class EsportsService {
     return { ok: true, data: null };
   }
 
+  /** Grow/shrink a team's slot count. */
+  async setSlotCount(teamId: string, count: number): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("set_team_slot_count", {
+      p_team_id: teamId,
+      p_count: count,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Game catalog as a slug -> cover_url map (for list/detail covers). */
+  async getGameCovers(): Promise<Result<Record<string, string | null>>> {
+    const { data, error } = await this.supabase
+      .from("games")
+      .select("slug, cover_url");
+    if (error) return { ok: false, error: error.message };
+    const map: Record<string, string | null> = {};
+    for (const row of data ?? []) {
+      map[row.slug as string] = (row.cover_url as string | null) ?? null;
+    }
+    return { ok: true, data: map };
+  }
+
   /** Create a team in the org. */
   async createTeam(
     orgId: string,

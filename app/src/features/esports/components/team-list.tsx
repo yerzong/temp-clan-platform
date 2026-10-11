@@ -31,7 +31,13 @@ const GAME_COVER: Record<string, string> = {
 };
 
 /** Paginated grid of teams. Each card has a game cover and links to detail. */
-export function TeamList({ teams }: { teams: Team[] }) {
+export function TeamList({
+  teams,
+  covers = {},
+}: {
+  teams: Team[];
+  covers?: Record<string, string | null>;
+}) {
   const pager = usePagination(teams, 9);
 
   if (teams.length === 0) {
@@ -49,28 +55,41 @@ export function TeamList({ teams }: { teams: Team[] }) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {pager.pageItems.map((team) => {
           const captain = team.slots.find((s) => s.isCaptain);
+          const cover = covers[team.game];
           return (
             <Link
               key={team.id}
               href={`/dashboard/esports/${team.id}`}
               className="group overflow-hidden rounded-xl border border-tc-border bg-card transition-colors hover:border-tc-border-strong"
             >
-              {/* Game cover */}
+              {/* Game cover — real art if available, else stylized gradient */}
               <div
                 className={cn(
-                  "relative flex h-24 items-end bg-gradient-to-br p-3",
+                  "relative flex h-24 items-end overflow-hidden bg-gradient-to-br p-3",
                   GAME_COVER[team.game] ?? GAME_COVER.other
                 )}
               >
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 opacity-[0.07]"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(hsl(var(--tc-fg)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--tc-fg)) 1px, transparent 1px)",
-                    backgroundSize: "16px 16px",
-                  }}
-                />
+                {cover ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={cover}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover opacity-70 transition-opacity group-hover:opacity-90"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--tc-canvas))] to-transparent" />
+                  </>
+                ) : (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 opacity-[0.07]"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(hsl(var(--tc-fg)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--tc-fg)) 1px, transparent 1px)",
+                      backgroundSize: "16px 16px",
+                    }}
+                  />
+                )}
                 <span className="relative font-mono text-[10px] font-medium uppercase tracking-widest text-tc-fg-secondary">
                   {GAME_LABELS[team.game] ?? team.game}
                 </span>

@@ -39,14 +39,16 @@ export default async function EsportsPage() {
   const esports = new EsportsService(supabase);
   const members = new MemberService(supabase);
 
-  const [teamsRes, wellbeingRes, membersRes] = await Promise.all([
+  const [teamsRes, wellbeingRes, membersRes, coversRes] = await Promise.all([
     esports.listTeams(orgId),
     esports.getPlayerWellbeing(orgId),
     members.listMembers(orgId),
+    esports.getGameCovers(),
   ]);
 
   const teams = teamsRes.ok ? teamsRes.data : [];
   const wellbeing = wellbeingRes.ok ? wellbeingRes.data : [];
+  const covers = coversRes.ok ? coversRes.data : {};
 
   const playerOptions: RosterPlayer[] = (membersRes.ok ? membersRes.data : [])
     .filter((m) => m.isPlayer)
@@ -98,7 +100,7 @@ export default async function EsportsPage() {
             </CardContent>
           </Card>
         ) : (
-          <TeamList teams={teams} />
+          <TeamList teams={teams} covers={covers} />
         )}
       </section>
 
