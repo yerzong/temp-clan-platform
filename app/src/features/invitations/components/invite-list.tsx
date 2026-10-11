@@ -4,11 +4,13 @@ import { useState, useTransition } from "react";
 import { Copy, Check, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Invitation, InvitationState } from "@/lib/domain/types";
+import { usePagination } from "@/lib/use-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Sheet } from "@/components/ui/sheet";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Pagination } from "@/components/ui/pagination";
 import { InviteConfigForm } from "./invite-config-form";
 import { deleteInvitation } from "../actions";
 
@@ -183,6 +185,8 @@ function InviteRow({ invite }: { invite: Invitation }) {
 }
 
 export function InviteList({ invitations }: { invitations: Invitation[] }) {
+  const pager = usePagination(invitations, 10);
+
   if (invitations.length === 0) {
     return (
       <EmptyState
@@ -194,9 +198,21 @@ export function InviteList({ invitations }: { invitations: Invitation[] }) {
 
   return (
     <div className="flex flex-col gap-2.5">
-      {invitations.map((inv) => (
+      {pager.pageItems.map((inv) => (
         <InviteRow key={inv.id} invite={inv} />
       ))}
+      <Pagination
+        page={pager.page}
+        pageCount={pager.pageCount}
+        canPrev={pager.canPrev}
+        canNext={pager.canNext}
+        onPrev={() => pager.setPage(pager.page - 1)}
+        onNext={() => pager.setPage(pager.page + 1)}
+        rangeStart={pager.rangeStart}
+        rangeEnd={pager.rangeEnd}
+        total={pager.total}
+        noun="invitaciones"
+      />
     </div>
   );
 }

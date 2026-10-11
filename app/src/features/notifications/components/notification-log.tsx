@@ -4,9 +4,11 @@ import { useState, useTransition } from "react";
 import { Trash2, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import type { AppNotification } from "@/lib/domain/types";
+import { usePagination } from "@/lib/use-pagination";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Pagination } from "@/components/ui/pagination";
 import { deleteNotification, deleteAllNotifications } from "../actions";
 
 function formatDate(iso: string): string {
@@ -32,6 +34,7 @@ export function NotificationLog({
   const [items, setItems] = useState<AppNotification[]>(notifications);
   const [confirmAll, setConfirmAll] = useState(false);
   const [pending, start] = useTransition();
+  const pager = usePagination(items, 15);
 
   function removeOne(id: string) {
     setItems((prev) => prev.filter((n) => n.id !== id));
@@ -93,7 +96,7 @@ export function NotificationLog({
             </tr>
           </thead>
           <tbody>
-            {items.map((n) => (
+            {pager.pageItems.map((n) => (
               <tr
                 key={n.id}
                 className="border-b border-tc-border-soft last:border-b-0 hover:bg-tc-surface-1"
@@ -130,6 +133,19 @@ export function NotificationLog({
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={pager.page}
+        pageCount={pager.pageCount}
+        canPrev={pager.canPrev}
+        canNext={pager.canNext}
+        onPrev={() => pager.setPage(pager.page - 1)}
+        onNext={() => pager.setPage(pager.page + 1)}
+        rangeStart={pager.rangeStart}
+        rangeEnd={pager.rangeEnd}
+        total={pager.total}
+        noun="notificaciones"
+      />
 
       <ConfirmDialog
         open={confirmAll}

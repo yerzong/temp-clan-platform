@@ -1,7 +1,11 @@
+"use client";
+
 import { Shield, Swords, Clapperboard, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Member } from "@/lib/domain/types";
+import { usePagination } from "@/lib/use-pagination";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Pagination } from "@/components/ui/pagination";
 import { MemberCard } from "./member-card";
 
 /**
@@ -94,37 +98,58 @@ export function MembersRoster({
 
   return (
     <div className="flex flex-col gap-8">
-      {groups.map((group) => {
-        const Icon = group.icon;
-        return (
-          <section key={group.key} className="flex flex-col gap-3">
-            <div className="flex items-center gap-2.5 border-b border-tc-border pb-2">
-              <Icon className="h-4 w-4 text-[hsl(var(--tc-accent-hover))]" />
-              <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-secondary">
-                {group.label}
-              </h2>
-              <span className="font-mono text-[11px] text-tc-fg-muted">
-                {group.members.length}
-              </span>
-              <span className="ml-auto text-[11px] text-tc-fg-muted">
-                {group.hint}
-              </span>
-            </div>
-
-            {group.members.length === 0 ? (
-              <p className="px-1 text-sm text-tc-fg-muted">
-                Nadie en esta sección todavía.
-              </p>
-            ) : (
-              <div className="flex flex-col gap-2.5">
-                {group.members.map((m) => (
-                  <MemberCard key={m.membershipId} member={m} />
-                ))}
-              </div>
-            )}
-          </section>
-        );
-      })}
+      {groups.map((group) => (
+        <RoleSection key={group.key} group={group} />
+      ))}
     </div>
+  );
+}
+
+/** One role group with its own pagination (10 per page). */
+function RoleSection({ group }: { group: RoleGroup }) {
+  const Icon = group.icon;
+  const pager = usePagination(group.members, 10);
+
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex items-center gap-2.5 border-b border-tc-border pb-2">
+        <Icon className="h-4 w-4 text-[hsl(var(--tc-accent-hover))]" />
+        <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-secondary">
+          {group.label}
+        </h2>
+        <span className="font-mono text-[11px] text-tc-fg-muted">
+          {group.members.length}
+        </span>
+        <span className="ml-auto text-[11px] text-tc-fg-muted">
+          {group.hint}
+        </span>
+      </div>
+
+      {group.members.length === 0 ? (
+        <p className="px-1 text-sm text-tc-fg-muted">
+          Nadie en esta sección todavía.
+        </p>
+      ) : (
+        <>
+          <div className="flex flex-col gap-2.5">
+            {pager.pageItems.map((m) => (
+              <MemberCard key={m.membershipId} member={m} />
+            ))}
+          </div>
+          <Pagination
+            page={pager.page}
+            pageCount={pager.pageCount}
+            canPrev={pager.canPrev}
+            canNext={pager.canNext}
+            onPrev={() => pager.setPage(pager.page - 1)}
+            onNext={() => pager.setPage(pager.page + 1)}
+            rangeStart={pager.rangeStart}
+            rangeEnd={pager.rangeEnd}
+            total={pager.total}
+            noun="miembros"
+          />
+        </>
+      )}
+    </section>
   );
 }

@@ -5,7 +5,9 @@ import { Sparkles, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { Match } from "@/lib/domain/types";
 import { reportResult, getMatchRecap, type ActionResult } from "../actions";
+import { usePagination } from "@/lib/use-pagination";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Pagination } from "@/components/ui/pagination";
 
 const initialState: ActionResult = {};
 
@@ -131,6 +133,8 @@ export function MatchList({
   matches: Match[];
   leagueId: string;
 }) {
+  const pager = usePagination(matches, 10);
+
   if (matches.length === 0) {
     return (
       <EmptyState
@@ -141,9 +145,21 @@ export function MatchList({
   }
   return (
     <div className="flex flex-col gap-2.5">
-      {matches.map((m) => (
+      {pager.pageItems.map((m) => (
         <MatchRow key={m.id} match={m} leagueId={leagueId} />
       ))}
+      <Pagination
+        page={pager.page}
+        pageCount={pager.pageCount}
+        canPrev={pager.canPrev}
+        canNext={pager.canNext}
+        onPrev={() => pager.setPage(pager.page - 1)}
+        onNext={() => pager.setPage(pager.page + 1)}
+        rangeStart={pager.rangeStart}
+        rangeEnd={pager.rangeEnd}
+        total={pager.total}
+        noun="partidas"
+      />
     </div>
   );
 }
