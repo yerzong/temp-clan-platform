@@ -4,16 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 
 /**
  * Client-side pagination over an in-memory array. Returns the current page
- * slice plus controls. Resets to page 1 whenever the item count shrinks below
- * the current page (e.g. after filtering or deleting), so the view never lands
- * on an empty page.
+ * slice plus controls, including a changeable page size. Resets/clamps the page
+ * whenever the item count or page size changes so the view never lands on an
+ * empty page.
  */
-export function usePagination<T>(items: T[], pageSize = 10) {
+export function usePagination<T>(items: T[], initialPageSize = 10) {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSizeState] = useState(initialPageSize);
 
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
 
-  // Clamp the current page if the list changed under it.
+  // Clamp the current page if the list or page size changed under it.
   useEffect(() => {
     if (page > pageCount) setPage(pageCount);
   }, [page, pageCount]);
@@ -23,11 +24,18 @@ export function usePagination<T>(items: T[], pageSize = 10) {
     return items.slice(start, start + pageSize);
   }, [items, page, pageSize]);
 
+  function setPageSize(size: number) {
+    setPageSizeState(size);
+    setPage(1);
+  }
+
   return {
     page,
+    pageSize,
     pageCount,
     pageItems,
     setPage,
+    setPageSize,
     canPrev: page > 1,
     canNext: page < pageCount,
     total: items.length,

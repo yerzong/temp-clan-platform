@@ -136,11 +136,13 @@ export function NotificationLog({
 
       <Pagination
         page={pager.page}
+        pageSize={pager.pageSize}
         pageCount={pager.pageCount}
         canPrev={pager.canPrev}
         canNext={pager.canNext}
         onPrev={() => pager.setPage(pager.page - 1)}
         onNext={() => pager.setPage(pager.page + 1)}
+        onPageSize={pager.setPageSize}
         rangeStart={pager.rangeStart}
         rangeEnd={pager.rangeEnd}
         total={pager.total}

@@ -71,7 +71,7 @@ export async function addToRoster(
   );
   if (!result.ok) return { error: result.error };
 
-  revalidatePath("/dashboard/esports");
+  revalidatePath("/dashboard/esports", "layout");
   return {};
 }
 
@@ -133,7 +133,7 @@ export async function removeFromRoster(
   const result = await new EsportsService(supabase).removeFromRoster(slotId);
   if (!result.ok) return { error: result.error };
 
-  revalidatePath("/dashboard/esports");
+  revalidatePath("/dashboard/esports", "layout");
   return {};
 }
 
@@ -156,6 +156,6 @@ export async function updateTeam(
   });
   if (!result.ok) return { error: result.error };
 
-  revalidatePath("/dashboard/esports");
+  revalidatePath("/dashboard/esports", "layout");
   return {};
 }

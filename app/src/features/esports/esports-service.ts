@@ -59,6 +59,47 @@ export class EsportsService {
     return { ok: true, data: teams };
   }
 
+  /** A single team with its roster. */
+  async getTeam(teamId: string): Promise<Result<Team | null>> {
+    const { data, error } = await this.supabase
+      .from("teams")
+      .select(
+        "id, name, game, format, roster_slots ( id, position, membership_id, memberships ( member_profiles ( display_name, avatar_url ) ) )"
+      )
+      .eq("id", teamId)
+      .maybeSingle();
+
+    if (error) return { ok: false, error: error.message };
+    if (!data) return { ok: true, data: null };
+
+    const slots = Array.isArray(data.roster_slots) ? data.roster_slots : [];
+    const roster: RosterPlayer[] = slots.map((s: Record<string, unknown>) => {
+      const membership = s.memberships as unknown as {
+        member_profiles?: { display_name?: string; avatar_url?: string | null };
+      } | null;
+      const profile = membership?.member_profiles;
+      return {
+        slotId: s.id as string,
+        membershipId: s.membership_id as string,
+        displayName: profile?.display_name ?? "Unnamed",
+        avatarUrl: profile?.avatar_url ?? null,
+        position: (s.position as string | null) ?? null,
+      };
+    });
+
+    return {
+      ok: true,
+      data: {
+        id: data.id as string,
+        name: data.name as string,
+        game: data.game as string,
+        format: data.format as string,
+        rosterCount: roster.length,
+        roster,
+      },
+    };
+  }
+
   /** Create a team in the org. */
   async createTeam(
     orgId: string,

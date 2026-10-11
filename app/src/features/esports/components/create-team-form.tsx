@@ -21,14 +21,19 @@ const T = {
   create: "Crear equipo",
 };
 
-export function CreateTeamForm() {
+export function CreateTeamForm({ onSuccess }: { onSuccess?: () => void }) {
   const [state, formAction, pending] = useActionState(createTeam, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const wasPending = useRef(false);
 
-  useActionToast(state, pending, "Team created");
+  useActionToast(state, pending, "Equipo creado");
 
   useEffect(() => {
-    if (!pending && !state.error) formRef.current?.reset();
+    if (wasPending.current && !pending && !state.error) {
+      formRef.current?.reset();
+      onSuccess?.();
+    }
+    wasPending.current = pending;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending]);
 
