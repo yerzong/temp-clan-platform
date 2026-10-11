@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Crown, Pencil, UserPlus, Link2, Trash2, Check } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { Crown, Pencil, UserPlus, Link2, Trash2, Check, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { TeamSlot, RosterPlayer } from "@/lib/domain/types";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Sheet } from "@/components/ui/sheet";
 import { PlayerCard } from "./player-card";
-import { assignSlot, clearSlot, renameSlot, setCaptain } from "../actions";
+import {
+  assignSlot,
+  clearSlot,
+  renameSlot,
+  setCaptain,
+  deleteSlot,
+} from "../actions";
 
 /**
  * A team slot: renders the collectible PlayerCard, plus an edit sheet (rename,
@@ -26,9 +32,20 @@ export function SlotCard({
   const [editOpen, setEditOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [labelValue, setLabelValue] = useState(slot.label);
+  const [query, setQuery] = useState("");
   const [pending, start] = useTransition();
 
   const filled = Boolean(slot.membershipId);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return available;
+    return available.filter((p) =>
+      [p.displayName, p.username, p.email]
+        .filter(Boolean)
+        .some((v) => (v as string).toLowerCase().includes(q))
+    );
+  }, [available, query]);
 
   function run(fn: () => Promise<{ error?: string } | void>, okMsg: string, close?: () => void) {
     start(async () => {
@@ -92,24 +109,34 @@ export function SlotCard({
     );
   }
 
+  function doDeleteSlot() {
+    run(
+      () => {
+        const fd = new FormData();
+        fd.set("slotId", slot.slotId);
+        return deleteSlot({}, fd);
+      },
+      "Slot eliminado",
+      () => setEditOpen(false)
+    );
+  }
+
   return (
     <div className="relative">
       <PlayerCard slot={slot} onEmptyClick={() => setAssignOpen(true)} />
 
-      {/* Edit affordance on filled cards */}
-      {filled && (
-        <button
-          type="button"
-          onClick={() => {
-            setLabelValue(slot.label);
-            setEditOpen(true);
-          }}
-          aria-label="Editar slot"
-          className="absolute bottom-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-md border border-tc-border bg-[hsl(var(--tc-canvas)/0.8)] text-tc-fg-tertiary backdrop-blur transition-colors hover:border-tc-accent hover:text-tc-fg"
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
-      )}
+      {/* Edit affordance (rename / captain / remove / delete slot) */}
+      <button
+        type="button"
+        onClick={() => {
+          setLabelValue(slot.label);
+          setEditOpen(true);
+        }}
+        aria-label="Editar slot"
+        className="absolute right-2 top-2 z-20 flex h-7 w-7 items-center justify-center rounded-md border border-tc-border bg-[hsl(var(--tc-canvas)/0.8)] text-tc-fg-tertiary backdrop-blur transition-colors hover:border-tc-accent hover:text-tc-fg"
+      >
+        <Pencil className="h-3.5 w-3.5" />
+      </button>
 
       {/* Edit sheet — rename / captain / remove */}
       <Sheet
@@ -142,42 +169,61 @@ export function SlotCard({
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 border-t border-tc-border-soft pt-5">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-tc-fg-tertiary">
-              Responsable del equipo
-            </span>
-            {slot.isCaptain ? (
-              <p className="flex items-center gap-2 text-sm text-[hsl(var(--tc-amber))]">
-                <Crown className="h-4 w-4" />
-                Este jugador es el capitán.
-              </p>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={doCaptain}
-                disabled={pending}
-                className="gap-2"
-              >
-                <Crown className="h-4 w-4" />
-                Marcar como capitán
-              </Button>
-            )}
-          </div>
+          {filled && (
+            <div className="flex flex-col gap-2 border-t border-tc-border-soft pt-5">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-tc-fg-tertiary">
+                Responsable del equipo
+              </span>
+              {slot.isCaptain ? (
+                <p className="flex items-center gap-2 text-sm text-[hsl(var(--tc-amber))]">
+                  <Crown className="h-4 w-4" />
+                  Este jugador es el capitán.
+                </p>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={doCaptain}
+                  disabled={pending}
+                  className="gap-2"
+                >
+                  <Crown className="h-4 w-4" />
+                  Marcar como capitán
+                </Button>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-2 border-t border-tc-border-soft pt-5">
+            {filled && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={doClear}
+                  disabled={pending}
+                  className="gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Quitar jugador del slot
+                </Button>
+                <p className="mb-2 text-[11px] text-tc-fg-muted">
+                  Libera el slot pero lo conserva (sigue en el equipo, vacío).
+                </p>
+              </>
+            )}
             <Button
               type="button"
               variant="destructive"
-              onClick={doClear}
+              onClick={doDeleteSlot}
               disabled={pending}
               className="gap-2"
             >
               <Trash2 className="h-4 w-4" />
-              Quitar jugador del slot
+              Eliminar slot del equipo
             </Button>
             <p className="text-[11px] text-tc-fg-muted">
-              El slot queda vacío conservando su nombre.
+              Elimina la posición por completo del equipo.
             </p>
           </div>
         </div>
@@ -202,19 +248,44 @@ export function SlotCard({
                 módulo Miembros.
               </p>
             ) : (
-              <div className="flex max-h-72 flex-col gap-1.5 overflow-y-auto">
-                {available.map((p) => (
-                  <button
-                    key={p.membershipId}
-                    type="button"
-                    onClick={() => doAssign(p.membershipId)}
-                    disabled={pending}
-                    className="flex items-center gap-2 rounded-md border border-tc-border bg-tc-surface-1 px-3 py-2 text-left text-sm text-tc-fg transition-colors hover:border-tc-accent hover:bg-tc-surface-2 disabled:opacity-50"
-                  >
-                    {p.displayName}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-tc-fg-muted" />
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Buscar por nombre, usuario o correo…"
+                    className="pl-9"
+                    aria-label="Buscar jugador"
+                  />
+                </div>
+                {filtered.length === 0 ? (
+                  <p className="py-2 text-sm text-tc-fg-muted">
+                    Sin coincidencias para “{query.trim()}”.
+                  </p>
+                ) : (
+                  <div className="flex max-h-72 flex-col gap-1.5 overflow-y-auto">
+                    {filtered.map((p) => (
+                      <button
+                        key={p.membershipId}
+                        type="button"
+                        onClick={() => doAssign(p.membershipId)}
+                        disabled={pending}
+                        className="flex flex-col gap-0.5 rounded-md border border-tc-border bg-tc-surface-1 px-3 py-2 text-left transition-colors hover:border-tc-accent hover:bg-tc-surface-2 disabled:opacity-50"
+                      >
+                        <span className="text-sm font-medium text-tc-fg">
+                          {p.displayName}
+                        </span>
+                        {(p.username || p.email) && (
+                          <span className="font-mono text-[11px] text-tc-fg-muted">
+                            {p.username ?? p.email}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
 

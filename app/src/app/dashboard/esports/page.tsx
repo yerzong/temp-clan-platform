@@ -54,6 +54,8 @@ export default async function EsportsPage() {
       slotId: m.membershipId,
       membershipId: m.membershipId,
       displayName: m.displayName,
+      username: m.username,
+      email: m.email,
       avatarUrl: m.avatarUrl,
       position: null,
     }));

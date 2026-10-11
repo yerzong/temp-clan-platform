@@ -1,14 +1,14 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
 import { EsportsService } from "@/features/esports/esports-service";
 import { SlotCard } from "@/features/esports/components/slot-card";
+import { TeamActions } from "@/features/esports/components/team-actions";
 import { GAME_LABELS } from "@/features/esports/components/team-list";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 import type { RosterPlayer } from "@/lib/domain/types";
 
@@ -71,6 +71,8 @@ export default async function TeamDetailPage({
       slotId: m.membershipId,
       membershipId: m.membershipId,
       displayName: m.displayName,
+      username: m.username,
+      email: m.email,
       avatarUrl: m.avatarUrl,
       position: null,
     }));
@@ -89,17 +91,7 @@ export default async function TeamDetailPage({
         eyebrow={GAME_LABELS[team.game] ?? team.game}
         title={team.name}
         subtitle="Gestiona los slots del equipo: renómbralos, asigna jugadores y marca al capitán."
-        actions={
-          <div className="flex items-center gap-3">
-            {team.platform && <Badge>{team.platform}</Badge>}
-            <span className="flex items-center gap-1.5 text-tc-fg-tertiary">
-              <Users className="h-4 w-4" />
-              <span className="font-mono text-sm tabular-nums">
-                {team.rosterCount}/{team.maxSlots}
-              </span>
-            </span>
-          </div>
-        }
+        actions={<TeamActions team={team} />}
       />
 
       {/* Team metrics */}

@@ -7,8 +7,6 @@ import { EsportsService } from "./esports-service";
 
 export type ActionResult = { error?: string };
 
-const VALID_FORMATS = ["versus-4v4", "horde-siege"];
-
 /** Resolve the current user's org id, or an error. */
 async function resolveOrgId(): Promise<
   { ok: true; orgId: string } | { ok: false; error: string }
@@ -221,17 +219,52 @@ export async function updateTeam(
 ): Promise<ActionResult> {
   const teamId = String(formData.get("teamId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
-  const format = String(formData.get("format") ?? "versus-4v4");
+  const game = String(formData.get("game") ?? "gears-e-day");
+  const platform = String(formData.get("platform") ?? "").trim() || null;
 
-  if (!teamId) return { error: "Missing team." };
-  if (!name) return { error: "Team name is required." };
-  if (!VALID_FORMATS.includes(format)) return { error: "Pick a valid format." };
+  if (!teamId) return { error: "Falta el equipo." };
+  if (!name) return { error: "El nombre del equipo es obligatorio." };
+  if (!VALID_GAMES.includes(game)) return { error: "Elige un juego válido." };
 
   const supabase = await createClient();
-  const result = await new EsportsService(supabase).updateTeam(teamId, {
+  const result = await new EsportsService(supabase).updateTeamMeta(teamId, {
     name,
-    format,
+    game,
+    platform,
   });
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports", "layout");
+  return {};
+}
+
+/** Add one empty slot to a team. */
+export async function addSlot(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const teamId = String(formData.get("teamId") ?? "");
+  const label = String(formData.get("label") ?? "").trim() || null;
+  if (!teamId) return { error: "Falta el equipo." };
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).addSlot(teamId, label);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports", "layout");
+  return {};
+}
+
+/** Delete a slot entirely. */
+export async function deleteSlot(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const slotId = String(formData.get("slotId") ?? "");
+  if (!slotId) return { error: "Falta el slot." };
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).deleteSlot(slotId);
   if (!result.ok) return { error: result.error };
 
   revalidatePath("/dashboard/esports", "layout");

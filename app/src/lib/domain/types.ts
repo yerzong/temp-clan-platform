@@ -20,6 +20,8 @@ export interface Member {
   role: MemberRole;
   status: MembershipStatus;
   displayName: string;
+  username: string | null;
+  email: string | null;
   avatarUrl: string | null;
   isCreator: boolean;
   isPlayer: boolean;
@@ -68,6 +70,8 @@ export interface RosterPlayer {
   slotId: string;
   membershipId: string;
   displayName: string;
+  username: string | null;
+  email: string | null;
   avatarUrl: string | null;
   position: string | null;
 }

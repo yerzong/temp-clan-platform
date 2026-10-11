@@ -32,13 +32,13 @@ export function PlayerCard({
       <button
         type="button"
         onClick={onEmptyClick}
-        className="group relative flex aspect-[3/4] flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border border-dashed border-tc-border-strong bg-[hsl(var(--tc-inset))] transition-colors hover:border-tc-accent"
+        className="group relative flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border border-dashed border-tc-border-strong bg-[hsl(var(--tc-inset))] transition-colors hover:border-tc-accent"
       >
-        <span className="absolute left-3 top-3 font-mono text-[11px] uppercase tracking-widest text-tc-fg-muted">
+        <span className="absolute left-0 top-3 rounded-r-md bg-tc-surface-3 px-2.5 py-1 font-mono text-[11px] uppercase tracking-widest text-tc-fg-muted">
           {slot.label}
         </span>
-        <span className="flex h-16 w-16 items-center justify-center rounded-full border border-tc-border-strong text-tc-fg-muted transition-colors group-hover:border-tc-accent group-hover:text-tc-fg">
-          <svg viewBox="0 0 24 24" fill="none" className="h-7 w-7">
+        <span className="flex h-20 w-20 items-center justify-center rounded-full border border-dashed border-tc-border-strong text-tc-fg-muted transition-colors group-hover:border-tc-accent group-hover:text-tc-fg">
+          <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8">
             <path
               d="M12 13a4 4 0 100-8 4 4 0 000 8zM5 20a7 7 0 0114 0"
               stroke="currentColor"
@@ -48,7 +48,7 @@ export function PlayerCard({
           </svg>
         </span>
         <span className="text-xs font-medium uppercase tracking-wider text-tc-fg-tertiary transition-colors group-hover:text-tc-fg">
-          Vacante
+          Asignar jugador
         </span>
       </button>
     );

@@ -138,6 +138,40 @@ export class EsportsService {
     return { ok: true, data: null };
   }
 
+  /** Edit a team's name/game/platform. */
+  async updateTeamMeta(
+    teamId: string,
+    input: { name: string; game: string; platform: string | null }
+  ): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("update_team_meta", {
+      p_team_id: teamId,
+      p_name: input.name,
+      p_game: input.game,
+      p_platform: input.platform,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Add one empty slot to a team. */
+  async addSlot(teamId: string, label: string | null): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("add_team_slot", {
+      p_team_id: teamId,
+      p_label: label,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Delete a slot entirely. */
+  async deleteSlot(slotId: string): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("delete_team_slot", {
+      p_slot_id: slotId,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
   /** Create a team in the org. */
   async createTeam(
     orgId: string,

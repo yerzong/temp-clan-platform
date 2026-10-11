@@ -14,7 +14,7 @@ export class MemberService {
     const { data, error } = await this.supabase
       .from("memberships")
       .select(
-        "id, user_id, role, status, member_profiles ( display_name, avatar_url, is_creator, is_player, bio )"
+        "id, user_id, role, status, member_profiles ( display_name, username, email, avatar_url, is_creator, is_player, bio )"
       )
       .eq("org_id", orgId)
       .order("created_at", { ascending: false });
@@ -24,6 +24,8 @@ export class MemberService {
     const members: Member[] = (data ?? []).map((row) => {
       const profile = (row.member_profiles ?? {}) as {
         display_name?: string;
+        username?: string | null;
+        email?: string | null;
         avatar_url?: string | null;
         is_creator?: boolean;
         is_player?: boolean;
@@ -34,6 +36,8 @@ export class MemberService {
         role: row.role as MemberRole,
         status: row.status as Member["status"],
         displayName: profile.display_name ?? "Unnamed",
+        username: profile.username ?? null,
+        email: profile.email ?? null,
         avatarUrl: profile.avatar_url ?? null,
         isCreator: profile.is_creator ?? false,
         isPlayer: profile.is_player ?? false,
