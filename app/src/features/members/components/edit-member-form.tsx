@@ -1,14 +1,13 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { Shield, Swords, Clapperboard, UserCog } from "lucide-react";
 import type { Member } from "@/lib/domain/types";
 import { useActionToast } from "@/lib/use-action-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateMember, updateMemberProfile, type ActionResult } from "../actions";
-import { FnToggle } from "./add-member-form";
+import { RolePicker, type RoleSelection } from "./role-picker";
 import { COUNTRIES } from "@/features/profile/countries";
 
 const initialState: ActionResult = {};
@@ -23,8 +22,9 @@ function splitPhone(phone: string | null): { dial: string; number: string } {
 }
 
 /**
- * Admin edit for a member: name + functions (multi) + admin permission, plus a
- * full profile section (contact + identity). Owner's admin permission is locked.
+ * Admin edit for a member: name + roles (RolePicker: multi functions / exclusive
+ * admin) and a separate full-profile section (contact + identity). The owner's
+ * admin permission is locked.
  */
 export function EditMemberForm({
   member,
@@ -40,12 +40,12 @@ export function EditMemberForm({
   );
   const wasPending = useRef(false);
 
-  const [fns, setFns] = useState({
+  const [roles, setRoles] = useState<RoleSelection>({
     staff: member.isStaff,
     player: member.isPlayer,
     creator: member.isCreator,
+    admin: member.isAdmin && !member.isOwner,
   });
-  const [isAdmin, setIsAdmin] = useState(member.isAdmin);
   const initialPhone = splitPhone(member.phone ?? null);
   const [dial, setDial] = useState(initialPhone.dial);
 
@@ -60,7 +60,7 @@ export function EditMemberForm({
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Role + functions */}
+      {/* Roles + functions */}
       <form action={formAction} className="flex flex-col gap-5">
         <input type="hidden" name="membershipId" value={member.membershipId} />
 
@@ -69,45 +69,26 @@ export function EditMemberForm({
           <Input id="em-name" name="displayName" defaultValue={member.displayName} required />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <Label>Funciones</Label>
-          <p className="-mt-1 text-[11px] text-tc-fg-muted">Puede tener varias a la vez.</p>
-          <input type="checkbox" name="isStaff" checked={fns.staff} readOnly className="hidden" />
-          <input type="checkbox" name="isPlayer" checked={fns.player} readOnly className="hidden" />
-          <input type="checkbox" name="isCreator" checked={fns.creator} readOnly className="hidden" />
-
-          <FnToggle label="Staff" hint="Opera la organización" icon={Shield} active={fns.staff} onToggle={() => setFns((p) => ({ ...p, staff: !p.staff }))} />
-          <FnToggle label="Jugador" hint="Compite en equipos" icon={Swords} active={fns.player} onToggle={() => setFns((p) => ({ ...p, player: !p.player }))} />
-          <FnToggle label="Creador" hint="Produce contenido" icon={Clapperboard} active={fns.creator} onToggle={() => setFns((p) => ({ ...p, creator: !p.creator }))} />
-        </div>
-
-        <div className="flex flex-col gap-2 border-t border-tc-border-soft pt-5">
-          <Label>Permiso</Label>
-          <input type="checkbox" name="isAdmin" checked={isAdmin} readOnly className="hidden" />
-          {member.isOwner ? (
+        {member.isOwner ? (
+          <div className="flex flex-col gap-2">
+            <RolePicker value={roles} onChange={setRoles} disabled />
             <p className="rounded-md border border-tc-border bg-tc-surface-2 p-3 text-xs text-tc-fg-tertiary">
-              Este miembro es el <strong className="text-tc-fg-secondary">dueño</strong>. Su permiso no se puede cambiar.
+              Este miembro es el <strong className="text-tc-fg-secondary">dueño</strong>; su permiso de admin no se puede cambiar.
             </p>
-          ) : (
-            <FnToggle
-              label="Administrador"
-              hint="Puede gestionar la organización"
-              icon={UserCog}
-              active={isAdmin}
-              onToggle={() => setIsAdmin((v) => !v)}
-            />
-          )}
-        </div>
+          </div>
+        ) : (
+          <RolePicker value={roles} onChange={setRoles} />
+        )}
 
         {state.error && (
           <p className="text-sm text-[hsl(var(--tc-destructive))]" role="alert">{state.error}</p>
         )}
         <Button type="submit" disabled={pending} className="w-full">
-          {pending ? "Guardando..." : "Guardar rol y funciones"}
+          {pending ? "Guardando..." : "Guardar roles"}
         </Button>
       </form>
 
-      {/* Full profile (admin editing) — only for linked members with a profile */}
+      {/* Full profile (admin editing) */}
       <form action={profAction} className="flex flex-col gap-5 border-t border-tc-border pt-6">
         <input type="hidden" name="membershipId" value={member.membershipId} />
         <span className="font-mono text-[11px] uppercase tracking-wider text-tc-fg-tertiary">
@@ -130,7 +111,7 @@ export function EditMemberForm({
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="em-nat">Nacionalidad</Label>
             <select id="em-nat" name="nationality" defaultValue="" className="h-10 w-full rounded-md border border-tc-border bg-input px-3 text-sm text-tc-fg outline-none focus-visible:border-tc-accent">
-              <option value="">Sin especificar</option>
+              <option value="">Sin cambiar</option>
               {COUNTRIES.map((c) => (
                 <option key={c.code} value={c.name}>{c.name}</option>
               ))}

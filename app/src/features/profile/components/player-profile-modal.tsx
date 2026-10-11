@@ -104,20 +104,29 @@ export function PlayerProfileModal({
         </p>
       ) : (
         <div className="flex flex-col gap-6">
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-tc-border bg-tc-surface-2">
+          {/* Hero header: big centered photo + name */}
+          <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-xl border border-tc-border bg-gradient-to-b from-tc-surface-2 to-card p-6 text-center">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(hsl(var(--tc-fg)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--tc-fg)) 1px, transparent 1px)",
+                backgroundSize: "20px 20px",
+              }}
+            />
+            <span className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-tc-border-strong bg-tc-surface-2 shadow-lg">
               {profile.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
               ) : (
-                <span className="font-mono text-xl font-bold text-tc-fg-tertiary">
+                <span className="font-mono text-2xl font-bold text-tc-fg-tertiary">
                   {initials(profile.displayName)}
                 </span>
               )}
             </span>
-            <div className="flex min-w-0 flex-col">
-              <span className="truncate text-lg font-semibold text-tc-fg">
+            <div className="relative flex flex-col items-center gap-1">
+              <span className="text-xl font-semibold tracking-tight text-tc-fg">
                 {profile.displayName}
               </span>
               {profile.username && (
@@ -129,17 +138,15 @@ export function PlayerProfileModal({
             </div>
           </div>
 
-          {/* Facts */}
-          <div className="flex flex-col gap-2.5">
-            {profile.email && <Fact icon={<Mail className="h-4 w-4" />} value={profile.email} />}
-            {profile.phone && <Fact icon={<Phone className="h-4 w-4" />} value={profile.phone} />}
-            {years != null && (
-              <Fact icon={<Cake className="h-4 w-4" />} value={`${years} años`} />
-            )}
-            {profile.nationality && (
-              <Fact icon={<Globe className="h-4 w-4" />} value={profile.nationality} />
-            )}
-          </div>
+          {/* Facts grid */}
+          {(profile.email || profile.phone || years != null || profile.nationality) && (
+            <div className="grid grid-cols-2 gap-2">
+              {profile.email && <FactTile icon={<Mail className="h-4 w-4" />} label="Correo" value={profile.email} />}
+              {profile.phone && <FactTile icon={<Phone className="h-4 w-4" />} label="Teléfono" value={profile.phone} />}
+              {years != null && <FactTile icon={<Cake className="h-4 w-4" />} label="Edad" value={`${years} años`} />}
+              {profile.nationality && <FactTile icon={<Globe className="h-4 w-4" />} label="Nacionalidad" value={profile.nationality} />}
+            </div>
+          )}
 
           {/* Game accounts */}
           {games.length > 0 && (
@@ -179,11 +186,24 @@ export function PlayerProfileModal({
   );
 }
 
-function Fact({ icon, value }: { icon: React.ReactNode; value: string }) {
+function FactTile({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
-    <div className="flex items-center gap-2.5 text-sm text-tc-fg-secondary">
-      <span className="text-tc-fg-muted">{icon}</span>
-      {value}
+    <div className="flex flex-col gap-1 rounded-lg border border-tc-border bg-card p-3">
+      <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-tc-fg-muted">
+        {icon}
+        {label}
+      </span>
+      <span className="truncate text-sm text-tc-fg" title={value}>
+        {value}
+      </span>
     </div>
   );
 }
