@@ -3,8 +3,25 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
+import { ProfileService } from "./profile-service";
+import type { MemberProfile } from "@/lib/domain/types";
 
 export type ActionResult = { error?: string };
+
+/** Fetch a member's full profile (for the player-detail view modal). */
+export async function fetchPlayerProfile(
+  membershipId: string
+): Promise<{ ok: true; profile: MemberProfile | null } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Debes iniciar sesión." };
+
+  const res = await new ProfileService(supabase).getProfile(membershipId);
+  if (!res.ok) return { ok: false, error: res.error };
+  return { ok: true, profile: res.data };
+}
 
 async function orgId(): Promise<
   { ok: true; orgId: string } | { ok: false; error: string }

@@ -61,6 +61,7 @@ export default async function TeamDetailPage({
 
   const team = teamRes.data;
   const captain = team.slots.find((s) => s.isCaptain) ?? null;
+  const canVerify = ctx.data.role === "owner" || ctx.data.role === "admin";
 
   // Players not already in a slot on this team.
   const onTeam = new Set(
@@ -112,7 +113,12 @@ export default async function TeamDetailPage({
       </h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {team.slots.map((slot) => (
-          <SlotCard key={slot.slotId} slot={slot} available={available} />
+          <SlotCard
+            key={slot.slotId}
+            slot={slot}
+            available={available}
+            canVerify={canVerify}
+          />
         ))}
         <AddSlotCard teamId={team.id} />
       </div>

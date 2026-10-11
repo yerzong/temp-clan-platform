@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Crown, Pencil, UserPlus, Link2, Trash2, Check, Search } from "lucide-react";
+import { Crown, Pencil, UserPlus, Link2, Trash2, Check, Search, Eye } from "lucide-react";
 import { toast } from "sonner";
 import type { TeamSlot, RosterPlayer } from "@/lib/domain/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Sheet } from "@/components/ui/sheet";
+import { PlayerProfileModal } from "@/features/profile/components/player-profile-modal";
 import { PlayerCard } from "./player-card";
 import {
   assignSlot,
@@ -25,12 +26,15 @@ import {
 export function SlotCard({
   slot,
   available,
+  canVerify = false,
 }: {
   slot: TeamSlot;
   available: RosterPlayer[];
+  canVerify?: boolean;
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
   const [labelValue, setLabelValue] = useState(slot.label);
   const [query, setQuery] = useState("");
   const [pending, start] = useTransition();
@@ -125,18 +129,40 @@ export function SlotCard({
     <div className="relative">
       <PlayerCard slot={slot} onEmptyClick={() => setAssignOpen(true)} />
 
-      {/* Edit affordance (rename / captain / remove / delete slot) */}
-      <button
-        type="button"
-        onClick={() => {
-          setLabelValue(slot.label);
-          setEditOpen(true);
-        }}
-        aria-label="Editar slot"
-        className="absolute right-2 top-2 z-20 flex h-7 w-7 items-center justify-center rounded-md border border-tc-border bg-[hsl(var(--tc-canvas)/0.8)] text-tc-fg-tertiary backdrop-blur transition-colors hover:border-tc-accent hover:text-tc-fg"
-      >
-        <Pencil className="h-3.5 w-3.5" />
-      </button>
+      {/* Top-right actions: view (filled only) + edit */}
+      <div className="absolute right-2 top-2 z-20 flex items-center gap-1">
+        {filled && (
+          <button
+            type="button"
+            onClick={() => setViewOpen(true)}
+            aria-label="Ver perfil del jugador"
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-tc-border bg-[hsl(var(--tc-canvas)/0.8)] text-tc-fg-tertiary backdrop-blur transition-colors hover:border-tc-accent hover:text-tc-fg"
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            setLabelValue(slot.label);
+            setEditOpen(true);
+          }}
+          aria-label="Editar slot"
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-tc-border bg-[hsl(var(--tc-canvas)/0.8)] text-tc-fg-tertiary backdrop-blur transition-colors hover:border-tc-accent hover:text-tc-fg"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {filled && (
+        <PlayerProfileModal
+          membershipId={slot.membershipId as string}
+          name={slot.displayName ?? ""}
+          open={viewOpen}
+          onClose={() => setViewOpen(false)}
+          canVerify={canVerify}
+        />
+      )}
 
       {/* Edit sheet — rename / captain / remove */}
       <Sheet
