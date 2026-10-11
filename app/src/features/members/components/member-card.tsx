@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pencil, Trash2, BadgeCheck, UserPen } from "lucide-react";
+import { Pencil, Trash2, BadgeCheck, UserPen, Eye } from "lucide-react";
 import { toast } from "sonner";
 import type { Member } from "@/lib/domain/types";
 import { Badge } from "@/components/ui/badge";
 import { Sheet } from "@/components/ui/sheet";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { PlayerProfileModal } from "@/features/profile/components/player-profile-modal";
 import { deleteMember } from "../actions";
 import { EditMemberForm } from "./edit-member-form";
 
@@ -48,6 +49,7 @@ export function MemberCard({
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
   const [deleting, startDelete] = useTransition();
 
   const isOwner = member.role === "owner";
@@ -97,15 +99,6 @@ export function MemberCard({
             <span className="truncate font-medium text-tc-fg">
               {member.displayName}
             </span>
-            {isLive && (
-              <span
-                title="En vivo en Twitch"
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[hsl(var(--tc-destructive)/0.5)] bg-[hsl(var(--tc-destructive)/0.9)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
-              >
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-                En vivo
-              </span>
-            )}
             {member.isLinked ? (
               <span
                 title="Cuenta real — se unió con Discord"
@@ -137,6 +130,14 @@ export function MemberCard({
         <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
+            onClick={() => setViewOpen(true)}
+            className="rounded-md p-2 text-tc-fg-muted opacity-0 transition-all hover:bg-tc-surface-2 hover:text-tc-fg group-hover:opacity-100"
+            aria-label="Ver perfil"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
             onClick={() => setEditOpen(true)}
             className="rounded-md p-2 text-tc-fg-muted opacity-0 transition-all hover:bg-tc-surface-2 hover:text-tc-fg group-hover:opacity-100"
             aria-label="Editar miembro"
@@ -152,6 +153,15 @@ export function MemberCard({
             >
               <Trash2 className="h-4 w-4" />
             </button>
+          )}
+          {isLive && (
+            <span
+              title="En vivo"
+              className="ml-1 inline-flex items-center gap-1 rounded-full border border-[hsl(var(--tc-destructive)/0.5)] bg-[hsl(var(--tc-destructive)/0.9)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white"
+            >
+              <span className="h-1 w-1 animate-pulse rounded-full bg-white" />
+              En vivo
+            </span>
           )}
           <span className="ml-1 font-mono text-[11px] uppercase tracking-wider text-tc-fg-muted">
             {STATUS_LABELS[member.status] ?? member.status}
@@ -187,6 +197,15 @@ export function MemberCard({
         confirmLabel="Eliminar"
         destructive
         pending={deleting}
+      />
+
+      {/* View profile — right-side drawer */}
+      <PlayerProfileModal
+        membershipId={member.membershipId}
+        name={member.displayName}
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        title="Ver perfil"
       />
     </>
   );

@@ -46,19 +46,25 @@ export function PlayerProfileModal({
   open,
   onClose,
   canVerify = false,
+  title = "Perfil del jugador",
 }: {
   membershipId: string;
   name: string;
   open: boolean;
   onClose: () => void;
   canVerify?: boolean;
+  title?: string;
 }) {
   const [profile, setProfile] = useState<MemberProfile | null>(null);
+  const [livePlatforms, setLivePlatforms] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
 
   function reload() {
     fetchPlayerProfile(membershipId).then((res) => {
-      if (res.ok) setProfile(res.profile);
+      if (res.ok) {
+        setProfile(res.profile);
+        setLivePlatforms(new Set(res.livePlatforms));
+      }
     });
   }
 
@@ -67,9 +73,13 @@ export function PlayerProfileModal({
     let cancelled = false;
     setLoading(true);
     setProfile(null);
+    setLivePlatforms(new Set());
     fetchPlayerProfile(membershipId).then((res) => {
       if (cancelled) return;
-      if (res.ok) setProfile(res.profile);
+      if (res.ok) {
+        setProfile(res.profile);
+        setLivePlatforms(new Set(res.livePlatforms));
+      }
       setLoading(false);
     });
     return () => {
@@ -82,7 +92,7 @@ export function PlayerProfileModal({
   const years = age(profile?.birthDate ?? null);
 
   return (
-    <Sheet open={open} onClose={onClose} title="Perfil del jugador" description={name}>
+    <Sheet open={open} onClose={onClose} title={title} description={name}>
       {loading ? (
         <div className="flex items-center justify-center py-16 text-tc-fg-muted">
           <Loader2 className="h-5 w-5 animate-spin" />
@@ -148,7 +158,11 @@ export function PlayerProfileModal({
           {socials.length > 0 && (
             <Section title="Redes sociales">
               {socials.map((a) => (
-                <AccountLine key={a.id} account={a} />
+                <AccountLine
+                  key={a.id}
+                  account={a}
+                  live={livePlatforms.has(a.platform)}
+                />
               ))}
             </Section>
           )}
@@ -187,10 +201,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function AccountLine({
   account,
   canVerify = false,
+  live = false,
   onChanged,
 }: {
   account: MemberProfile["accounts"][number];
   canVerify?: boolean;
+  live?: boolean;
   onChanged?: () => void;
 }) {
   const opt = platformOption(account.platform);
@@ -222,6 +238,12 @@ function AccountLine({
             {platformLabel(account.platform)}
             {account.verified && (
               <BadgeCheck className="h-3.5 w-3.5 text-[hsl(var(--tc-success))]" />
+            )}
+            {live && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-[hsl(var(--tc-destructive)/0.5)] bg-[hsl(var(--tc-destructive)/0.9)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
+                <span className="h-1 w-1 animate-pulse rounded-full bg-white" />
+                En vivo
+              </span>
             )}
           </span>
           <span className="truncate font-mono text-[11px] text-tc-fg-muted">

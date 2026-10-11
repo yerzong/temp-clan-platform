@@ -41,10 +41,14 @@ export async function completeOnboarding(
   return {};
 }
 
-/** Fetch a member's full profile (for the player-detail view modal). */
-export async function fetchPlayerProfile(
-  membershipId: string
-): Promise<{ ok: true; profile: MemberProfile | null } | { ok: false; error: string }> {
+/**
+ * Fetch a member's full profile + which linked platforms are live right now
+ * (currently only Twitch is checked; other platforms always report offline).
+ */
+export async function fetchPlayerProfile(membershipId: string): Promise<
+  | { ok: true; profile: MemberProfile | null; livePlatforms: string[] }
+  | { ok: false; error: string }
+> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -53,7 +57,15 @@ export async function fetchPlayerProfile(
 
   const res = await new ProfileService(supabase).getProfile(membershipId);
   if (!res.ok) return { ok: false, error: res.error };
-  return { ok: true, profile: res.data };
+
+  const livePlatforms: string[] = [];
+  const twitch = res.data?.accounts.find((a) => a.platform === "twitch");
+  if (twitch) {
+    const { isHandleLive } = await import("@/features/esports/twitch-service");
+    if (await isHandleLive(twitch.handle)) livePlatforms.push("twitch");
+  }
+
+  return { ok: true, profile: res.data, livePlatforms };
 }
 
 async function orgId(): Promise<
