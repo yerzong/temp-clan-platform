@@ -151,38 +151,6 @@ export async function addToRoster(
   return {};
 }
 
-export async function addCheckin(
-  _prev: ActionResult,
-  formData: FormData
-): Promise<ActionResult> {
-  const membershipId = String(formData.get("membershipId") ?? "");
-  const mood = Number(formData.get("mood"));
-  const rest = Number(formData.get("rest"));
-  const practiceHours = Number(formData.get("practiceHours"));
-  const note = String(formData.get("note") ?? "").trim() || undefined;
-
-  if (!membershipId) return { error: "Player is required." };
-  if (!(mood >= 1 && mood <= 5)) return { error: "Mood must be 1-5." };
-  if (!(rest >= 1 && rest <= 5)) return { error: "Rest must be 1-5." };
-  if (!(practiceHours >= 0 && practiceHours <= 24)) {
-    return { error: "Practice hours must be 0-24." };
-  }
-
-  const org = await resolveOrgId();
-  if (!org.ok) return { error: org.error };
-
-  const supabase = await createClient();
-  const result = await new EsportsService(supabase).addCheckin(
-    org.orgId,
-    membershipId,
-    { mood, rest, practiceHours, note }
-  );
-  if (!result.ok) return { error: result.error };
-
-  revalidatePath("/dashboard/esports");
-  return {};
-}
-
 export async function deleteTeam(
   _prev: ActionResult,
   formData: FormData

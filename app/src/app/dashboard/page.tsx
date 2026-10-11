@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Users, Swords, Clapperboard, Trophy, HeartPulse } from "lucide-react";
+import { Users, Swords, Clapperboard, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
@@ -55,25 +55,21 @@ export default async function DashboardOverviewPage() {
   const orgId = organization.id;
 
   // Pull a snapshot across all modules in parallel.
-  const [membersRes, teamsRes, contentRes, leaguesRes, wellbeingRes] =
-    await Promise.all([
-      new MemberService(supabase).listMembers(orgId),
-      new EsportsService(supabase).listTeams(orgId),
-      new ContentService(supabase).listContent(orgId),
-      new LeagueService(supabase).listLeagues(orgId),
-      new EsportsService(supabase).getPlayerWellbeing(orgId),
-    ]);
+  const [membersRes, teamsRes, contentRes, leaguesRes] = await Promise.all([
+    new MemberService(supabase).listMembers(orgId),
+    new EsportsService(supabase).listTeams(orgId),
+    new ContentService(supabase).listContent(orgId),
+    new LeagueService(supabase).listLeagues(orgId),
+  ]);
 
   const members = membersRes.ok ? membersRes.data : [];
   const teams = teamsRes.ok ? teamsRes.data : [];
   const content = contentRes.ok ? contentRes.data : [];
   const leagues = leaguesRes.ok ? leaguesRes.data : [];
-  const wellbeing = wellbeingRes.ok ? wellbeingRes.data : [];
 
   const contentInProgress = content.filter(
     (c) => c.status === "editing" || c.status === "review"
   ).length;
-  const atRisk = wellbeing.filter((p) => p.signal === "elevated").length;
 
   return (
     <div>
@@ -97,7 +93,7 @@ export default async function DashboardOverviewPage() {
       />
 
       {/* Cross-module snapshot */}
-      <div className="tc-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="tc-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           href="/dashboard/members"
           label="Miembros"
@@ -125,14 +121,6 @@ export default async function DashboardOverviewPage() {
           value={leagues.length}
           hint="Temp League"
           icon={Trophy}
-        />
-        <SummaryCard
-          href="/dashboard/esports"
-          label="Requieren atención"
-          value={atRisk}
-          hint="jugadores en riesgo"
-          icon={HeartPulse}
-          tone={atRisk > 0 ? "accent" : "neutral"}
         />
       </div>
     </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, Swords, Clapperboard, Trophy, HeartPulse } from "lucide-react";
+import { Users, Swords, Clapperboard, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const CAPABILITIES = [
@@ -12,11 +12,6 @@ const CAPABILITIES = [
     icon: Swords,
     title: "Equipos de esports",
     desc: "Arma squads para Versus 4v4 y Horde Siege, gestiona el roster.",
-  },
-  {
-    icon: HeartPulse,
-    title: "Sostenibilidad del jugador",
-    desc: "Monitorea bienestar y señales de burnout — cuida a tus jugadores.",
   },
   {
     icon: Clapperboard,
