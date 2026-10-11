@@ -9,9 +9,10 @@ import { Pagination } from "@/components/ui/pagination";
 import { MemberCard } from "./member-card";
 
 /**
- * Roster grouped by role. Each member lands in exactly one section following a
- * clear priority: staff core (owner/admin/staff) -> players -> creators.
- * Extra attributes (player/creator) still show as badges on the card.
+ * Roster grouped by role. Each member lands in EXACTLY ONE section following a
+ * clear priority: Admin > Players > Creators > Staff. A member with no function
+ * at all falls into Staff so nobody disappears. Their other functions still
+ * show as badges on the card.
  */
 
 interface RoleGroup {
@@ -22,25 +23,52 @@ interface RoleGroup {
   members: Member[];
 }
 
+/** Which single section a member belongs to, by priority. */
+function primaryGroupKey(m: Member): "admins" | "players" | "creators" | "staff" {
+  if (m.isAdmin) return "admins";
+  if (m.isPlayer) return "players";
+  if (m.isCreator) return "creators";
+  return "staff"; // staff flag OR no function at all
+}
+
 function groupByRole(members: Member[]): RoleGroup[] {
-  // Functions can combine, so a member may appear in several groups. A member
-  // with no function at all falls into Staff so nobody disappears.
-  const staff = members.filter((m) => m.isStaff || (!m.isPlayer && !m.isCreator));
-  const players = members.filter((m) => m.isPlayer);
-  const creators = members.filter((m) => m.isCreator);
-  const admins = members.filter((m) => m.isAdmin);
+  const buckets: Record<string, Member[]> = {
+    admins: [],
+    staff: [],
+    players: [],
+    creators: [],
+  };
+  for (const m of members) buckets[primaryGroupKey(m)].push(m);
 
   const groups: RoleGroup[] = [
-    { key: "admins", label: "Admin", hint: "Gestionan la organización", icon: UserCog, members: admins },
-    { key: "staff", label: "Staff", hint: "Operan la organización", icon: Shield, members: staff },
-    { key: "players", label: "Jugadores", hint: "Compiten en equipos", icon: Swords, members: players },
-    { key: "creators", label: "Creadores", hint: "Producen contenido", icon: Clapperboard, members: creators },
+    { key: "admins", label: "Admin", hint: "Gestionan la organización", icon: UserCog, members: buckets.admins },
+    { key: "staff", label: "Staff", hint: "Operan la organización", icon: Shield, members: buckets.staff },
+    { key: "players", label: "Jugadores", hint: "Compiten en equipos", icon: Swords, members: buckets.players },
+    { key: "creators", label: "Creadores", hint: "Producen contenido", icon: Clapperboard, members: buckets.creators },
   ];
   // Hide empty groups so "all" view stays clean.
   return groups.filter((g) => g.members.length > 0);
 }
 
 export type RoleFilter = "all" | "admins" | "staff" | "players" | "creators";
+
+/** A specific filter: one group with everyone who HAS that function/permission. */
+function groupByFilter(members: Member[], filter: RoleFilter): RoleGroup[] {
+  const defs: Record<
+    Exclude<RoleFilter, "all">,
+    { label: string; hint: string; icon: LucideIcon; has: (m: Member) => boolean }
+  > = {
+    admins: { label: "Admin", hint: "Gestionan la organización", icon: UserCog, has: (m) => m.isAdmin },
+    staff: { label: "Staff", hint: "Operan la organización", icon: Shield, has: (m) => m.isStaff },
+    players: { label: "Jugadores", hint: "Compiten en equipos", icon: Swords, has: (m) => m.isPlayer },
+    creators: { label: "Creadores", hint: "Producen contenido", icon: Clapperboard, has: (m) => m.isCreator },
+  };
+  if (filter === "all") return [];
+  const def = defs[filter];
+  const matched = members.filter(def.has);
+  if (matched.length === 0) return [];
+  return [{ key: filter, label: def.label, hint: def.hint, icon: def.icon, members: matched }];
+}
 
 export function MembersRoster({
   members,
@@ -65,9 +93,14 @@ export function MembersRoster({
     );
   }
 
-  const groups = groupByRole(members).filter(
-    (g) => filter === "all" || g.key === filter
-  );
+  // "all" view: each member shown once in their primary group.
+  // A specific filter: show everyone who HAS that function/permission, even if
+  // their primary group is different (e.g. an admin who is also a player shows
+  // up under the "Jugadores" filter).
+  const groups =
+    filter === "all"
+      ? groupByRole(members)
+      : groupByFilter(members, filter);
 
   return (
     <div className="flex flex-col gap-8">
