@@ -24,8 +24,9 @@ export async function addMember(
 ): Promise<ActionResult> {
   const fns = readFunctions(formData);
   if (!fns.displayName) return { error: "El nombre es obligatorio." };
-  if (!fns.isStaff && !fns.isPlayer && !fns.isCreator) {
-    return { error: "Elige al menos una función (staff, jugador o creador)." };
+  // Admin is exclusive and replaces functions, so an admin needs no function.
+  if (!fns.isAdmin && !fns.isStaff && !fns.isPlayer && !fns.isCreator) {
+    return { error: "Elige al menos una función o marca Administrador." };
   }
 
   const supabase = await createClient();
@@ -61,8 +62,9 @@ export async function updateMember(
 
   const fns = readFunctions(formData);
   if (!fns.displayName) return { error: "El nombre es obligatorio." };
-  if (!fns.isStaff && !fns.isPlayer && !fns.isCreator) {
-    return { error: "Elige al menos una función (staff, jugador o creador)." };
+  // Admin is exclusive and replaces functions, so an admin needs no function.
+  if (!fns.isAdmin && !fns.isStaff && !fns.isPlayer && !fns.isCreator) {
+    return { error: "Elige al menos una función o marca Administrador." };
   }
 
   const supabase = await createClient();
