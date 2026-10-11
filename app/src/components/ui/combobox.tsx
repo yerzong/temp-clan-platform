@@ -141,10 +141,10 @@ export function Combobox({
             {filtered.length === 0 ? (
               <li className="px-3 py-6 text-center text-sm text-tc-fg-muted">{emptyText}</li>
             ) : (
-              filtered.map((o) => {
+              filtered.map((o, i) => {
                 const active = o.value === value;
                 return (
-                  <li key={o.value}>
+                  <li key={`${o.value}-${i}`}>
                     <button
                       type="button"
                       role="option"

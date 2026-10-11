@@ -29,13 +29,17 @@ const NATIONALITY_OPTIONS: ComboOption[] = COUNTRIES.map((c) => ({
   keywords: c.code,
 }));
 
+// Several countries share a dial code (+1 → US, CA, DO, PR), so the option
+// value must be the unique ISO code, not the dial. We derive the dial on submit.
 const DIAL_OPTIONS: ComboOption[] = DIAL_CODES.map((c) => ({
-  value: c.dial,
+  value: c.code,
   label: `${c.name}`,
   prefix: flagEmoji(c.code),
   hint: c.dial,
-  keywords: `${c.code} ${c.dial}`,
+  keywords: `${c.code} ${c.dial} ${c.name}`,
 }));
+
+const DIAL_BY_CODE = new Map(DIAL_CODES.map((c) => [c.code, c.dial]));
 
 /**
  * Post-Discord onboarding, as an interactive 3-step wizard: (1) photo + name,
@@ -54,8 +58,9 @@ export function OnboardingForm({ profile }: { profile: MemberProfile }) {
   const [username, setUsername] = useState(profile.username ?? "");
   const [birthDate, setBirthDate] = useState(profile.birthDate ?? "");
   const [nationality, setNationality] = useState(profile.nationality ?? "");
-  const [dial, setDial] = useState("+52");
+  const [dialCode, setDialCode] = useState("MX"); // ISO code; dial derived below
   const [phoneNumber, setPhoneNumber] = useState("");
+  const dial = DIAL_BY_CODE.get(dialCode) ?? "+52";
   const [privacy, setPrivacy] = useState(false);
 
   const wasPending = useRef(false);
@@ -213,8 +218,8 @@ export function OnboardingForm({ profile }: { profile: MemberProfile }) {
                     <div className="w-32 shrink-0">
                       <Combobox
                         options={DIAL_OPTIONS}
-                        value={dial}
-                        onChange={setDial}
+                        value={dialCode}
+                        onChange={setDialCode}
                         searchPlaceholder="País o lada…"
                         aria-label="Código de país"
                         renderValue={(opt) => (
