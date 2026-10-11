@@ -190,12 +190,66 @@ body {
   }
 }
 
+@keyframes tc-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes tc-sheet-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Centered dialog: scale + fade */
+@keyframes tc-dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes tc-dialog-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+}
+
 .tc-overlay-in {
   animation: tc-overlay-in 0.2s ease both;
+}
+.tc-overlay-out {
+  animation: tc-overlay-out 0.2s ease both;
 }
 
 .tc-sheet-in {
   animation: tc-sheet-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.tc-sheet-out {
+  animation: tc-sheet-out 0.26s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.tc-dialog-in {
+  animation: tc-dialog-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.tc-dialog-out {
+  animation: tc-dialog-out 0.18s cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -203,7 +257,11 @@ body {
   .tc-fade,
   .tc-stagger > *,
   .tc-overlay-in,
-  .tc-sheet-in {
+  .tc-overlay-out,
+  .tc-sheet-in,
+  .tc-sheet-out,
+  .tc-dialog-in,
+  .tc-dialog-out {
     animation: none;
   }
 }
