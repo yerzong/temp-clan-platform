@@ -14,7 +14,7 @@ export class MemberService {
     const { data, error } = await this.supabase
       .from("memberships")
       .select(
-        "id, role, status, member_profiles ( display_name, avatar_url, is_creator, is_player, bio )"
+        "id, user_id, role, status, member_profiles ( display_name, avatar_url, is_creator, is_player, bio )"
       )
       .eq("org_id", orgId)
       .order("created_at", { ascending: false });
@@ -38,6 +38,8 @@ export class MemberService {
         isCreator: profile.is_creator ?? false,
         isPlayer: profile.is_player ?? false,
         bio: profile.bio ?? null,
+        // A linked member has a real auth account behind the membership.
+        isLinked: row.user_id != null,
       };
     });
 
