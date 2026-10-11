@@ -68,4 +68,17 @@ export class OrganizationService {
 
     return { ok: true, data: data as string };
   }
+
+  /**
+   * The current user leaves an organization. Notifies owners/admins. The owner
+   * cannot leave (enforced by the DB function).
+   */
+  async leaveOrganization(orgId: string): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("leave_organization", {
+      target_org: orgId,
+    });
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
 }

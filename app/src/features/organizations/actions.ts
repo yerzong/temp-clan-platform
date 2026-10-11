@@ -40,3 +40,26 @@ export async function createOrganization(
   revalidatePath("/dashboard");
   return {};
 }
+
+/** The current user leaves their organization. */
+export async function leaveOrganization(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const orgId = String(formData.get("orgId") ?? "");
+  if (!orgId) return { error: "Falta la organización." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Debes iniciar sesión." };
+
+  const result = await new OrganizationService(supabase).leaveOrganization(
+    orgId
+  );
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard");
+  return {};
+}

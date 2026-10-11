@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
 import { MembersManager } from "@/features/members/components/members-manager";
+import { LeaveOrgButton } from "@/features/organizations/components/leave-org-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat";
 import { PageHeader } from "@/components/layout/page-header";
@@ -40,6 +41,8 @@ export default async function MembersPage() {
   }
 
   const orgId = ctx.data.organization.id;
+  const orgName = ctx.data.organization.name;
+  const isOwner = ctx.data.role === "owner";
   const membersRes = await new MemberService(supabase).listMembers(orgId);
   const members = membersRes.ok ? membersRes.data : [];
 
@@ -60,6 +63,12 @@ export default async function MembersPage() {
           </div>
         }
       />
+
+      {!isOwner && (
+        <div className="mb-6 flex justify-end">
+          <LeaveOrgButton orgId={orgId} orgName={orgName} />
+        </div>
+      )}
 
       {membersRes.ok === false ? (
         <Card>
