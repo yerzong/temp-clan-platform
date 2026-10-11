@@ -5,6 +5,7 @@ import { NotificationService } from "@/features/notifications/notification-servi
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { AppShell } from "@/components/layout/app-shell";
 import { SignOutButton } from "@/components/layout/sign-out-button";
+import { ProfileMenuButton } from "@/components/layout/profile-menu-button";
 import { SideNav, type NavItem } from "@/components/layout/side-nav";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,6 @@ const NAV: NavItem[] = [
   { href: "/dashboard/content", label: "Contenido", icon: "content" },
   { href: "/dashboard/league", label: "Temp League", icon: "league" },
   { href: "/dashboard/invitations", label: "Invitaciones", icon: "invitations" },
-  { href: "/dashboard/profile", label: "Mi perfil", icon: "profile" },
 ];
 
 export default async function DashboardLayout({
@@ -44,13 +44,15 @@ export default async function DashboardLayout({
 
   const notifRes = await new NotificationService(supabase).list();
   const notifications = notifRes.ok ? notifRes.data : [];
+  const avatarUrl =
+    (user.user_metadata?.avatar_url as string | undefined) ?? null;
 
   return (
     <AppShell
-      userName={userName}
       actions={
         <div className="flex items-center gap-2">
           <NotificationBell notifications={notifications} userId={user.id} />
+          <ProfileMenuButton name={userName} avatarUrl={avatarUrl} />
           <SignOutButton />
         </div>
       }

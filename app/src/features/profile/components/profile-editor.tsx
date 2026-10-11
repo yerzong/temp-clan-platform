@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
-import { Plus, Trash2, BadgeCheck, Gamepad2, Share2 } from "lucide-react";
+import { Plus, Trash2, BadgeCheck, Gamepad2, Share2, AtSign, Mail } from "lucide-react";
 import { toast } from "sonner";
 import type { MemberProfile, LinkedAccount } from "@/lib/domain/types";
 import { useActionToast } from "@/lib/use-action-toast";
@@ -9,21 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet } from "@/components/ui/sheet";
+import { AvatarUploader } from "./avatar-uploader";
 import {
   updateMyProfile,
   upsertMyAccount,
   deleteMyAccount,
   type ActionResult,
 } from "../actions";
-import {
-  SOCIAL_PLATFORMS,
-  GAME_PLATFORMS,
-  platformLabel,
-} from "../platforms";
+import { SOCIAL_PLATFORMS, GAME_PLATFORMS, platformLabel } from "../platforms";
 
 const initialState: ActionResult = {};
 
-/** Self-service profile editor: identity fields + linked accounts manager. */
+/** Self-service profile editor: a profile header + identity form + accounts. */
 export function ProfileEditor({ profile }: { profile: MemberProfile }) {
   const [state, formAction, pending] = useActionState(
     updateMyProfile,
@@ -34,48 +31,68 @@ export function ProfileEditor({ profile }: { profile: MemberProfile }) {
   useActionToast(state, pending, "Perfil actualizado");
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-      {/* Identity form */}
-      <form action={formAction} className="flex flex-col gap-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="p-display">Nombre</Label>
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      {/* Identity card */}
+      <form
+        action={formAction}
+        className="flex flex-col gap-6 rounded-xl border border-tc-border bg-card p-6"
+      >
+        <div className="flex flex-col gap-5 border-b border-tc-border-soft pb-6">
+          <AvatarUploader
+            initialUrl={profile.avatarUrl}
+            displayName={profile.displayName}
+          />
+          {/* Identity readouts (email + username are from Discord) */}
+          <div className="flex flex-wrap gap-x-6 gap-y-1.5">
+            {profile.email && (
+              <span className="flex items-center gap-1.5 text-xs text-tc-fg-tertiary">
+                <Mail className="h-3.5 w-3.5" />
+                {profile.email}
+              </span>
+            )}
+            {profile.username && (
+              <span className="flex items-center gap-1.5 font-mono text-xs text-tc-fg-tertiary">
+                <AtSign className="h-3.5 w-3.5" />
+                {profile.username}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label="Nombre" htmlFor="p-display">
             <Input
               id="p-display"
               name="displayName"
               defaultValue={profile.displayName}
               required
             />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="p-username">Nombre de usuario</Label>
+          </Field>
+          <Field label="Nombre de usuario" htmlFor="p-username">
             <Input
               id="p-username"
               name="username"
               defaultValue={profile.username ?? ""}
               placeholder="ej. .yerzong"
             />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="p-birth">Fecha de nacimiento</Label>
+          </Field>
+          <Field label="Fecha de nacimiento" htmlFor="p-birth">
             <Input
               id="p-birth"
               name="birthDate"
               type="date"
               defaultValue={profile.birthDate ?? ""}
             />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="p-nat">Nacionalidad</Label>
+          </Field>
+          <Field label="Nacionalidad" htmlFor="p-nat">
             <Input
               id="p-nat"
               name="nationality"
               defaultValue={profile.nationality ?? ""}
               placeholder="ej. México"
             />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="p-phone">Teléfono</Label>
+          </Field>
+          <Field label="Teléfono" htmlFor="p-phone">
             <Input
               id="p-phone"
               name="phone"
@@ -83,27 +100,15 @@ export function ProfileEditor({ profile }: { profile: MemberProfile }) {
               defaultValue={profile.phone ?? ""}
               placeholder="+52…"
             />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="p-avatar">Foto (URL)</Label>
-            <Input
-              id="p-avatar"
-              name="avatarUrl"
-              defaultValue={profile.avatarUrl ?? ""}
-              placeholder="https://…"
-            />
-          </div>
+          </Field>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-tc-fg-secondary">
-          <input
-            type="checkbox"
-            name="privacy"
-            defaultChecked={profile.privacyAccepted}
-            className="h-4 w-4 accent-[hsl(var(--tc-accent))]"
-          />
-          Acepto el aviso de privacidad
-        </label>
+        {/* Keep privacy acceptance set once; not shown here (handled at onboarding). */}
+        <input
+          type="hidden"
+          name="privacy"
+          value={profile.privacyAccepted ? "on" : "off"}
+        />
 
         {state.error && (
           <p className="text-sm text-[hsl(var(--tc-destructive))]" role="alert">
@@ -112,7 +117,7 @@ export function ProfileEditor({ profile }: { profile: MemberProfile }) {
         )}
 
         <Button type="submit" disabled={pending} className="w-fit">
-          {pending ? "Guardando..." : "Guardar perfil"}
+          {pending ? "Guardando..." : "Guardar cambios"}
         </Button>
       </form>
 
@@ -135,7 +140,7 @@ export function ProfileEditor({ profile }: { profile: MemberProfile }) {
         </div>
 
         {profile.accounts.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-tc-border p-4 text-sm text-tc-fg-muted">
+          <p className="rounded-xl border border-dashed border-tc-border p-4 text-sm text-tc-fg-muted">
             Vincula tus redes sociales o cuentas de juego (Xbox, Riot, Steam…).
           </p>
         ) : (
@@ -152,6 +157,23 @@ export function ProfileEditor({ profile }: { profile: MemberProfile }) {
   );
 }
 
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+    </div>
+  );
+}
+
 function AccountRow({ account }: { account: LinkedAccount }) {
   const [pending, start] = useTransition();
 
@@ -164,12 +186,14 @@ function AccountRow({ account }: { account: LinkedAccount }) {
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-tc-border bg-card p-3">
-      {account.kind === "game" ? (
-        <Gamepad2 className="h-4 w-4 shrink-0 text-tc-fg-tertiary" />
-      ) : (
-        <Share2 className="h-4 w-4 shrink-0 text-tc-fg-tertiary" />
-      )}
+    <div className="flex items-center gap-3 rounded-xl border border-tc-border bg-card p-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-tc-border bg-tc-surface-2 text-tc-fg-tertiary">
+        {account.kind === "game" ? (
+          <Gamepad2 className="h-4 w-4" />
+        ) : (
+          <Share2 className="h-4 w-4" />
+        )}
+      </span>
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="flex items-center gap-1.5 text-sm font-medium text-tc-fg">
           {platformLabel(account.platform)}
