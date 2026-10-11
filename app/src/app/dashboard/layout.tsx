@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
+import { NotificationService } from "@/features/notifications/notification-service";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { AppShell } from "@/components/layout/app-shell";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { SideNav, type NavItem } from "@/components/layout/side-nav";
@@ -39,10 +41,18 @@ export default async function DashboardLayout({
   );
   const orgName = ctx.ok && ctx.data ? ctx.data.organization.name : null;
 
+  const notifRes = await new NotificationService(supabase).list();
+  const notifications = notifRes.ok ? notifRes.data : [];
+
   return (
     <AppShell
       userName={userName}
-      actions={<SignOutButton />}
+      actions={
+        <div className="flex items-center gap-2">
+          <NotificationBell notifications={notifications} />
+          <SignOutButton />
+        </div>
+      }
       nav={<SideNav items={NAV} />}
       topLeft={
         orgName ? (

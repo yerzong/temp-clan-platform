@@ -86,11 +86,36 @@ export interface PlayerWellbeing {
 
 export type InvitationStatus = "pending" | "accepted" | "revoked";
 
+/** Derived, UI-facing state of an invitation link. */
+export type InvitationState =
+  | "active"
+  | "expired"
+  | "exhausted"
+  | "revoked"
+  | "accepted";
+
 export interface Invitation {
   id: string;
   token: string;
   role: MemberRole;
   status: InvitationStatus;
+  createdAt: string;
+  expiresAt: string | null;
+  /** null = unlimited uses. */
+  maxUses: number | null;
+  useCount: number;
+  /** Computed from status, expiry, and remaining uses. */
+  state: InvitationState;
+}
+
+// --- Notifications ----------------------------------------------------------
+
+export interface AppNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  readAt: string | null;
   createdAt: string;
 }
 
