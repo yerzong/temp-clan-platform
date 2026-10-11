@@ -1,12 +1,50 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   Team,
+  TeamSlot,
   RosterPlayer,
   PlayerWellbeing,
   WellbeingCheckin,
   BurnoutSignal,
   Result,
 } from "@/lib/domain/types";
+
+const TEAM_SELECT =
+  "id, name, game, format, platform, max_slots, roster_slots ( id, label, slot_order, is_captain, membership_id, memberships ( member_profiles ( display_name, avatar_url ) ) )";
+
+/** Map a raw team row (with nested slots) to the Team domain shape. */
+function mapTeam(row: Record<string, unknown>): Team {
+  const rawSlots = Array.isArray(row.roster_slots) ? row.roster_slots : [];
+  const slots: TeamSlot[] = rawSlots
+    .map((s: Record<string, unknown>) => {
+      const membership = s.memberships as unknown as {
+        member_profiles?: { display_name?: string; avatar_url?: string | null };
+      } | null;
+      const profile = membership?.member_profiles;
+      const membershipId = (s.membership_id as string | null) ?? null;
+      return {
+        slotId: s.id as string,
+        label: (s.label as string | null) ?? "Slot",
+        order: (s.slot_order as number | null) ?? 0,
+        isCaptain: Boolean(s.is_captain),
+        membershipId,
+        displayName: membershipId ? profile?.display_name ?? "Sin nombre" : null,
+        avatarUrl: membershipId ? profile?.avatar_url ?? null : null,
+      };
+    })
+    .sort((a, b) => a.order - b.order);
+
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    game: row.game as string,
+    format: (row.format as string) ?? "",
+    platform: (row.platform as string | null) ?? null,
+    maxSlots: (row.max_slots as number | null) ?? slots.length,
+    rosterCount: slots.filter((s) => s.membershipId).length,
+    slots,
+  };
+}
 
 /**
  * Esports service — owns teams, rosters, and the wellbeing/sustainability data.
@@ -16,88 +54,88 @@ import type {
 export class EsportsService {
   constructor(private readonly supabase: SupabaseClient) {}
 
-  /** All teams in an org, each with its roster players. */
+  /** All teams in an org, each with its slots (filled + empty). */
   async listTeams(orgId: string): Promise<Result<Team[]>> {
     const { data, error } = await this.supabase
       .from("teams")
-      .select(
-        "id, name, game, format, roster_slots ( id, position, membership_id, memberships ( member_profiles ( display_name, avatar_url ) ) )"
-      )
+      .select(TEAM_SELECT)
       .eq("org_id", orgId)
       .order("created_at", { ascending: true });
 
     if (error) return { ok: false, error: error.message };
-
-    const teams: Team[] = (data ?? []).map((row) => {
-      const slots = Array.isArray(row.roster_slots) ? row.roster_slots : [];
-      const roster: RosterPlayer[] = slots.map((s: Record<string, unknown>) => {
-        const membership = s.memberships as unknown as {
-          member_profiles?: {
-            display_name?: string;
-            avatar_url?: string | null;
-          };
-        } | null;
-        const profile = membership?.member_profiles;
-        return {
-          slotId: s.id as string,
-          membershipId: s.membership_id as string,
-          displayName: profile?.display_name ?? "Unnamed",
-          avatarUrl: profile?.avatar_url ?? null,
-          position: (s.position as string | null) ?? null,
-        };
-      });
-      return {
-        id: row.id as string,
-        name: row.name as string,
-        game: row.game as string,
-        format: row.format as string,
-        rosterCount: roster.length,
-        roster,
-      };
-    });
-
-    return { ok: true, data: teams };
+    return { ok: true, data: (data ?? []).map((r) => mapTeam(r)) };
   }
 
-  /** A single team with its roster. */
+  /** A single team with its slots. */
   async getTeam(teamId: string): Promise<Result<Team | null>> {
     const { data, error } = await this.supabase
       .from("teams")
-      .select(
-        "id, name, game, format, roster_slots ( id, position, membership_id, memberships ( member_profiles ( display_name, avatar_url ) ) )"
-      )
+      .select(TEAM_SELECT)
       .eq("id", teamId)
       .maybeSingle();
 
     if (error) return { ok: false, error: error.message };
     if (!data) return { ok: true, data: null };
+    return { ok: true, data: mapTeam(data) };
+  }
 
-    const slots = Array.isArray(data.roster_slots) ? data.roster_slots : [];
-    const roster: RosterPlayer[] = slots.map((s: Record<string, unknown>) => {
-      const membership = s.memberships as unknown as {
-        member_profiles?: { display_name?: string; avatar_url?: string | null };
-      } | null;
-      const profile = membership?.member_profiles;
-      return {
-        slotId: s.id as string,
-        membershipId: s.membership_id as string,
-        displayName: profile?.display_name ?? "Unnamed",
-        avatarUrl: profile?.avatar_url ?? null,
-        position: (s.position as string | null) ?? null,
-      };
+  /** Create a team with N empty named slots. */
+  async createTeamWithSlots(
+    orgId: string,
+    input: {
+      name: string;
+      game: string;
+      platform: string | null;
+      slotCount: number;
+    }
+  ): Promise<Result<string>> {
+    const { data, error } = await this.supabase.rpc("create_team_with_slots", {
+      target_org: orgId,
+      p_name: input.name,
+      p_game: input.game,
+      p_platform: input.platform,
+      p_slot_count: input.slotCount,
     });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: data as string };
+  }
 
-    return {
-      ok: true,
-      data: {
-        id: data.id as string,
-        name: data.name as string,
-        game: data.game as string,
-        format: data.format as string,
-        rosterCount: roster.length,
-        roster,
-      },
-    };
+  /** Assign a player to a specific slot. */
+  async assignSlot(slotId: string, membershipId: string): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("assign_slot", {
+      p_slot_id: slotId,
+      p_membership_id: membershipId,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Empty a slot (keeps its label). */
+  async clearSlot(slotId: string): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("clear_slot", {
+      p_slot_id: slotId,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Rename a slot. */
+  async renameSlot(slotId: string, label: string): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("rename_slot", {
+      p_slot_id: slotId,
+      p_label: label,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Set the team captain (a filled slot). */
+  async setCaptain(slotId: string): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("set_captain", {
+      p_slot_id: slotId,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
   }
 
   /** Create a team in the org. */

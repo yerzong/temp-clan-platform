@@ -5,12 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
 import { EsportsService } from "@/features/esports/esports-service";
-import { AssignToTeamForm } from "@/features/esports/components/assign-to-team-form";
-import { RosterPlayerRow } from "@/features/esports/components/roster-player-row";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SlotCard } from "@/features/esports/components/slot-card";
+import { GAME_LABELS } from "@/features/esports/components/team-list";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
 import type { RosterPlayer } from "@/lib/domain/types";
 
 export const dynamic = "force-dynamic";
@@ -61,10 +60,12 @@ export default async function TeamDetailPage({
 
   const team = teamRes.data;
 
-  // Players not already on this team's roster.
-  const onRoster = new Set(team.roster.map((r) => r.membershipId));
+  // Players not already in a slot on this team.
+  const onTeam = new Set(
+    team.slots.map((s) => s.membershipId).filter(Boolean) as string[]
+  );
   const available: RosterPlayer[] = (membersRes.ok ? membersRes.data : [])
-    .filter((m) => m.isPlayer && !onRoster.has(m.membershipId))
+    .filter((m) => m.isPlayer && !onTeam.has(m.membershipId))
     .map((m) => ({
       slotId: m.membershipId,
       membershipId: m.membershipId,
@@ -84,57 +85,26 @@ export default async function TeamDetailPage({
       </Link>
 
       <PageHeader
-        eyebrow="Equipo"
+        eyebrow={GAME_LABELS[team.game] ?? team.game}
         title={team.name}
-        subtitle="Gestiona el roster de este equipo: asigna o quita jugadores."
+        subtitle="Gestiona los slots del equipo: renómbralos, asigna jugadores y marca al capitán."
         actions={
           <div className="flex items-center gap-3">
-            <Badge>{team.format}</Badge>
+            {team.platform && <Badge>{team.platform}</Badge>}
             <span className="flex items-center gap-1.5 text-tc-fg-tertiary">
               <Users className="h-4 w-4" />
               <span className="font-mono text-sm tabular-nums">
-                {team.rosterCount}
+                {team.rosterCount}/{team.maxSlots}
               </span>
             </span>
           </div>
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        {/* Roster */}
-        <section className="flex flex-col gap-3">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
-            Roster
-          </h2>
-          {team.roster.length === 0 ? (
-            <EmptyState
-              icon={<Users className="h-4 w-4" />}
-              title="Roster vacío"
-              description="Asigna jugadores a este equipo desde el panel de la derecha."
-            />
-          ) : (
-            <div className="flex flex-col gap-2.5">
-              {team.roster.map((p) => (
-                <RosterPlayerRow key={p.slotId} player={p} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Assign */}
-        <aside>
-          <Card className="lg:sticky lg:top-6">
-            <CardHeader>
-              <CardTitle className="text-base">Asignar al roster</CardTitle>
-              <p className="text-sm text-tc-fg-tertiary">
-                Suma un jugador a {team.name}.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <AssignToTeamForm teamId={team.id} players={available} />
-            </CardContent>
-          </Card>
-        </aside>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {team.slots.map((slot) => (
+          <SlotCard key={slot.slotId} slot={slot} available={available} />
+        ))}
       </div>
     </div>
   );

@@ -27,27 +27,105 @@ async function resolveOrgId(): Promise<
   return { ok: true, orgId: ctx.data.organization.id };
 }
 
+const VALID_GAMES = ["gears-e-day", "valorant", "lol", "cs2", "fortnite", "other"];
+
+/** Create a team with game, optional platform, and N empty named slots. */
 export async function createTeam(
   _prev: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   const name = String(formData.get("name") ?? "").trim();
-  const format = String(formData.get("format") ?? "versus-4v4");
+  const game = String(formData.get("game") ?? "gears-e-day");
+  const platform = String(formData.get("platform") ?? "").trim() || null;
+  const slotCount = Number(formData.get("slotCount"));
 
-  if (!name) return { error: "Team name is required." };
-  if (!VALID_FORMATS.includes(format)) return { error: "Pick a valid format." };
+  if (!name) return { error: "El nombre del equipo es obligatorio." };
+  if (!VALID_GAMES.includes(game)) return { error: "Elige un juego válido." };
+  if (!Number.isInteger(slotCount) || slotCount < 1 || slotCount > 20) {
+    return { error: "El número de slots debe estar entre 1 y 20." };
+  }
 
   const org = await resolveOrgId();
   if (!org.ok) return { error: org.error };
 
   const supabase = await createClient();
-  const result = await new EsportsService(supabase).createTeam(org.orgId, {
-    name,
-    format,
-  });
+  const result = await new EsportsService(supabase).createTeamWithSlots(
+    org.orgId,
+    { name, game, platform, slotCount }
+  );
   if (!result.ok) return { error: result.error };
 
-  revalidatePath("/dashboard/esports");
+  revalidatePath("/dashboard/esports", "layout");
+  return {};
+}
+
+/** Assign a player to a specific slot. */
+export async function assignSlot(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const slotId = String(formData.get("slotId") ?? "");
+  const membershipId = String(formData.get("membershipId") ?? "");
+  if (!slotId || !membershipId) return { error: "Falta el slot o el jugador." };
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).assignSlot(
+    slotId,
+    membershipId
+  );
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports", "layout");
+  return {};
+}
+
+/** Empty a slot (keeps its label). */
+export async function clearSlot(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const slotId = String(formData.get("slotId") ?? "");
+  if (!slotId) return { error: "Falta el slot." };
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).clearSlot(slotId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports", "layout");
+  return {};
+}
+
+/** Rename a slot. */
+export async function renameSlot(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const slotId = String(formData.get("slotId") ?? "");
+  const label = String(formData.get("label") ?? "").trim();
+  if (!slotId) return { error: "Falta el slot." };
+  if (!label) return { error: "El nombre del slot es obligatorio." };
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).renameSlot(slotId, label);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports", "layout");
+  return {};
+}
+
+/** Set the team captain. */
+export async function setCaptain(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const slotId = String(formData.get("slotId") ?? "");
+  if (!slotId) return { error: "Falta el slot." };
+
+  const supabase = await createClient();
+  const result = await new EsportsService(supabase).setCaptain(slotId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/esports", "layout");
   return {};
 }
 

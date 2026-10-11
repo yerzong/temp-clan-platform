@@ -45,10 +45,25 @@ export interface Team {
   name: string;
   game: string;
   format: string;
-  rosterCount: number;
-  roster: RosterPlayer[];
+  platform: string | null;
+  maxSlots: number;
+  rosterCount: number; // filled slots
+  slots: TeamSlot[];
 }
 
+/** A slot on a team. Exists even when empty; keeps its label. */
+export interface TeamSlot {
+  slotId: string;
+  label: string;
+  order: number;
+  isCaptain: boolean;
+  // Filled slot data (null when empty).
+  membershipId: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+}
+
+/** A player option for assignment (a member flagged is_player). */
 export interface RosterPlayer {
   slotId: string;
   membershipId: string;
