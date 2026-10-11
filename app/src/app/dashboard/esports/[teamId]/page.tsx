@@ -59,6 +59,7 @@ export default async function TeamDetailPage({
   if (!teamRes.data) notFound();
 
   const team = teamRes.data;
+  const captain = team.slots.find((s) => s.isCaptain) ?? null;
 
   // Players not already in a slot on this team.
   const onTeam = new Set(
@@ -101,10 +102,56 @@ export default async function TeamDetailPage({
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Team metrics */}
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <TeamMetric label="Titulares" value={`${team.rosterCount}/${team.maxSlots}`} />
+        <TeamMetric label="Vacantes" value={team.maxSlots - team.rosterCount} />
+        <TeamMetric
+          label="Capitán"
+          value={captain ? captain.displayName ?? "—" : "Sin asignar"}
+          tone={captain ? "accent" : "neutral"}
+        />
+        <TeamMetric label="Juego" value={GAME_LABELS[team.game] ?? team.game} />
+      </div>
+
+      <h2 className="mb-3 font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
+        Roster
+      </h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {team.slots.map((slot) => (
           <SlotCard key={slot.slotId} slot={slot} available={available} />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function TeamMetric({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string | number;
+  tone?: "neutral" | "accent";
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-lg border border-tc-border bg-card px-4 py-3">
+      <span
+        aria-hidden
+        className={
+          tone === "accent"
+            ? "absolute inset-y-0 left-0 w-0.5 bg-[hsl(var(--tc-accent))]"
+            : "absolute inset-y-0 left-0 w-0.5 bg-tc-border-strong"
+        }
+      />
+      <div className="flex flex-col gap-1 pl-1.5">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-tc-fg-muted">
+          {label}
+        </span>
+        <span className="truncate font-mono text-lg font-semibold tabular-nums text-tc-fg">
+          {value}
+        </span>
       </div>
     </div>
   );

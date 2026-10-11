@@ -1,25 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Crown, Pencil, UserPlus, X, Check, Star } from "lucide-react";
+import { Crown, Pencil, UserPlus, Link2, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { TeamSlot, RosterPlayer } from "@/lib/domain/types";
-import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Sheet } from "@/components/ui/sheet";
+import { PlayerCard } from "./player-card";
 import { assignSlot, clearSlot, renameSlot, setCaptain } from "../actions";
 
-function initials(name: string): string {
-  const cleaned = name.replace(/^[.@]+/, "");
-  const parts = cleaned.split(/[\s_-]+/).filter(Boolean);
-  if (parts.length === 0) return "??";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-}
-
 /**
- * One team slot card. Empty slots offer "assign a registered player". Filled
- * slots show the player with captain + remove actions. The label is editable.
+ * A team slot: renders the collectible PlayerCard, plus an edit sheet (rename,
+ * captain, remove) for filled slots and an assign sheet (pick a registered
+ * player, or invite by link) for empty ones. Both are right-side slide-overs.
  */
 export function SlotCard({
   slot,
@@ -28,204 +23,213 @@ export function SlotCard({
   slot: TeamSlot;
   available: RosterPlayer[];
 }) {
-  const [editingLabel, setEditingLabel] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
   const [labelValue, setLabelValue] = useState(slot.label);
-  const [assigning, setAssigning] = useState(false);
   const [pending, start] = useTransition();
 
   const filled = Boolean(slot.membershipId);
 
-  function doRename() {
-    const next = labelValue.trim();
-    if (!next || next === slot.label) {
-      setEditingLabel(false);
-      return;
-    }
+  function run(fn: () => Promise<{ error?: string } | void>, okMsg: string, close?: () => void) {
     start(async () => {
-      const fd = new FormData();
-      fd.set("slotId", slot.slotId);
-      fd.set("label", next);
-      const res = await renameSlot({}, fd);
+      const res = await fn();
       if (res?.error) toast.error(res.error);
       else {
-        toast.success("Slot renombrado");
-        setEditingLabel(false);
+        toast.success(okMsg);
+        close?.();
       }
     });
+  }
+
+  function doRename() {
+    const next = labelValue.trim();
+    if (!next) return;
+    run(
+      () => {
+        const fd = new FormData();
+        fd.set("slotId", slot.slotId);
+        fd.set("label", next);
+        return renameSlot({}, fd);
+      },
+      "Slot renombrado"
+    );
   }
 
   function doAssign(membershipId: string) {
-    start(async () => {
-      const fd = new FormData();
-      fd.set("slotId", slot.slotId);
-      fd.set("membershipId", membershipId);
-      const res = await assignSlot({}, fd);
-      if (res?.error) toast.error(res.error);
-      else {
-        toast.success("Jugador asignado");
-        setAssigning(false);
-      }
-    });
+    run(
+      () => {
+        const fd = new FormData();
+        fd.set("slotId", slot.slotId);
+        fd.set("membershipId", membershipId);
+        return assignSlot({}, fd);
+      },
+      "Jugador asignado",
+      () => setAssignOpen(false)
+    );
   }
 
   function doClear() {
-    start(async () => {
-      const fd = new FormData();
-      fd.set("slotId", slot.slotId);
-      const res = await clearSlot({}, fd);
-      if (res?.error) toast.error(res.error);
-      else toast.success("Slot liberado");
-    });
+    run(
+      () => {
+        const fd = new FormData();
+        fd.set("slotId", slot.slotId);
+        return clearSlot({}, fd);
+      },
+      "Slot liberado",
+      () => setEditOpen(false)
+    );
   }
 
   function doCaptain() {
-    start(async () => {
-      const fd = new FormData();
-      fd.set("slotId", slot.slotId);
-      const res = await setCaptain({}, fd);
-      if (res?.error) toast.error(res.error);
-      else toast.success("Capitán asignado");
-    });
+    run(
+      () => {
+        const fd = new FormData();
+        fd.set("slotId", slot.slotId);
+        return setCaptain({}, fd);
+      },
+      "Capitán asignado",
+      () => setEditOpen(false)
+    );
   }
 
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-3 rounded-lg border bg-card p-4 transition-colors",
-        slot.isCaptain
-          ? "border-[hsl(var(--tc-amber)/0.5)]"
-          : "border-tc-border"
-      )}
-    >
-      {/* Label row (editable) */}
-      <div className="flex items-center justify-between gap-2">
-        {editingLabel ? (
-          <div className="flex flex-1 items-center gap-1.5">
-            <Input
-              value={labelValue}
-              onChange={(e) => setLabelValue(e.target.value)}
-              className="h-7 text-xs"
-              autoFocus
-              onKeyDown={(e) => e.key === "Enter" && doRename()}
-            />
-            <button
-              type="button"
-              onClick={doRename}
-              disabled={pending}
-              aria-label="Guardar nombre"
-              className="rounded p-1 text-tc-fg-tertiary hover:text-tc-fg"
-            >
-              <Check className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              setLabelValue(slot.label);
-              setEditingLabel(true);
-            }}
-            className="group flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-tc-fg-tertiary hover:text-tc-fg"
-          >
-            {slot.label}
-            <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
-          </button>
-        )}
+    <div className="relative">
+      <PlayerCard slot={slot} onEmptyClick={() => setAssignOpen(true)} />
 
-        {slot.isCaptain && (
-          <span
-            title="Capitán"
-            className="inline-flex items-center gap-1 rounded-full border border-[hsl(var(--tc-amber)/0.4)] bg-[hsl(var(--tc-amber)/0.12)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--tc-amber))]"
-          >
-            <Crown className="h-3 w-3" />
-            Capitán
-          </span>
-        )}
-      </div>
-
-      {/* Body: filled vs empty */}
-      {filled ? (
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-tc-border bg-tc-surface-2">
-            {slot.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={slot.avatarUrl} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <span className="font-mono text-sm font-semibold text-tc-fg-tertiary">
-                {initials(slot.displayName ?? "")}
-              </span>
-            )}
-          </div>
-          <span className="flex-1 truncate font-medium text-tc-fg">
-            {slot.displayName}
-          </span>
-          <div className="flex items-center gap-1">
-            {!slot.isCaptain && (
-              <button
-                type="button"
-                onClick={doCaptain}
-                disabled={pending}
-                aria-label="Marcar como capitán"
-                title="Marcar como capitán"
-                className="rounded-md p-1.5 text-tc-fg-muted transition-colors hover:bg-tc-surface-2 hover:text-[hsl(var(--tc-amber))]"
-              >
-                <Star className="h-4 w-4" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={doClear}
-              disabled={pending}
-              aria-label="Quitar jugador"
-              title="Quitar del slot"
-              className="rounded-md p-1.5 text-tc-fg-muted transition-colors hover:bg-tc-surface-2 hover:text-[hsl(var(--tc-destructive))]"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      ) : assigning ? (
-        <div className="flex flex-col gap-2">
-          {available.length === 0 ? (
-            <p className="text-xs text-tc-fg-muted">
-              No hay jugadores disponibles. Marca miembros como jugadores en
-              Miembros.
-            </p>
-          ) : (
-            <select
-              onChange={(e) => e.target.value && doAssign(e.target.value)}
-              defaultValue=""
-              disabled={pending}
-              className="h-9 w-full rounded-md border border-tc-border bg-input px-2 text-sm text-tc-fg outline-none focus-visible:border-tc-accent"
-            >
-              <option value="" disabled>
-                Elige un jugador…
-              </option>
-              {available.map((p) => (
-                <option key={p.membershipId} value={p.membershipId}>
-                  {p.displayName}
-                </option>
-              ))}
-            </select>
-          )}
-          <button
-            type="button"
-            onClick={() => setAssigning(false)}
-            className="self-start text-[11px] text-tc-fg-muted hover:text-tc-fg"
-          >
-            Cancelar
-          </button>
-        </div>
-      ) : (
+      {/* Edit affordance on filled cards */}
+      {filled && (
         <button
           type="button"
-          onClick={() => setAssigning(true)}
-          className="flex items-center justify-center gap-2 rounded-md border border-dashed border-tc-border-strong py-3 text-sm text-tc-fg-tertiary transition-colors hover:border-tc-accent hover:text-tc-fg"
+          onClick={() => {
+            setLabelValue(slot.label);
+            setEditOpen(true);
+          }}
+          aria-label="Editar slot"
+          className="absolute bottom-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-md border border-tc-border bg-[hsl(var(--tc-canvas)/0.8)] text-tc-fg-tertiary backdrop-blur transition-colors hover:border-tc-accent hover:text-tc-fg"
         >
-          <UserPlus className="h-4 w-4" />
-          Asignar jugador
+          <Pencil className="h-4 w-4" />
         </button>
       )}
+
+      {/* Edit sheet — rename / captain / remove */}
+      <Sheet
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        title="Editar slot"
+        description={slot.displayName ?? slot.label}
+      >
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="slot-label">Nombre del slot</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="slot-label"
+                value={labelValue}
+                onChange={(e) => setLabelValue(e.target.value)}
+                placeholder="ej. Mid, JG, Coach"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={doRename}
+                disabled={pending}
+                className="gap-1.5"
+              >
+                <Check className="h-4 w-4" />
+                Guardar
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-tc-border-soft pt-5">
+            <span className="font-mono text-[11px] uppercase tracking-wider text-tc-fg-tertiary">
+              Responsable del equipo
+            </span>
+            {slot.isCaptain ? (
+              <p className="flex items-center gap-2 text-sm text-[hsl(var(--tc-amber))]">
+                <Crown className="h-4 w-4" />
+                Este jugador es el capitán.
+              </p>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={doCaptain}
+                disabled={pending}
+                className="gap-2"
+              >
+                <Crown className="h-4 w-4" />
+                Marcar como capitán
+              </Button>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-tc-border-soft pt-5">
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={doClear}
+              disabled={pending}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Quitar jugador del slot
+            </Button>
+            <p className="text-[11px] text-tc-fg-muted">
+              El slot queda vacío conservando su nombre.
+            </p>
+          </div>
+        </div>
+      </Sheet>
+
+      {/* Assign sheet — registered player OR invite link */}
+      <Sheet
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        title={`Llenar "${slot.label}"`}
+        description="Agrega un jugador registrado o invítalo por enlace."
+      >
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-tc-fg-tertiary">
+              <UserPlus className="h-3.5 w-3.5" />
+              Jugador registrado
+            </span>
+            {available.length === 0 ? (
+              <p className="text-sm text-tc-fg-muted">
+                No hay jugadores disponibles. Marca miembros como jugadores en el
+                módulo Miembros.
+              </p>
+            ) : (
+              <div className="flex max-h-72 flex-col gap-1.5 overflow-y-auto">
+                {available.map((p) => (
+                  <button
+                    key={p.membershipId}
+                    type="button"
+                    onClick={() => doAssign(p.membershipId)}
+                    disabled={pending}
+                    className="flex items-center gap-2 rounded-md border border-tc-border bg-tc-surface-1 px-3 py-2 text-left text-sm text-tc-fg transition-colors hover:border-tc-accent hover:bg-tc-surface-2 disabled:opacity-50"
+                  >
+                    {p.displayName}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-tc-border-soft pt-5">
+            <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-tc-fg-tertiary">
+              <Link2 className="h-3.5 w-3.5" />
+              Invitar por enlace
+            </span>
+            <p className="text-sm text-tc-fg-muted">
+              Próximamente: genera un enlace para que un jugador nuevo se una con
+              Discord directamente en este slot.
+            </p>
+          </div>
+        </div>
+      </Sheet>
     </div>
   );
 }
