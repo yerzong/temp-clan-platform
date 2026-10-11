@@ -13,12 +13,20 @@ export const dynamic = "force-dynamic";
 
 const NAV: NavItem[] = [
   { href: "/dashboard", label: "Resumen", icon: "overview" },
+  { href: "/dashboard/live", label: "En vivo", icon: "live" },
   { href: "/dashboard/members", label: "Miembros", icon: "members" },
   { href: "/dashboard/esports", label: "Esports", icon: "esports" },
   { href: "/dashboard/content", label: "Contenido", icon: "content" },
   { href: "/dashboard/league", label: "Temp League", icon: "league" },
   { href: "/dashboard/invitations", label: "Invitaciones", icon: "invitations" },
 ];
+
+/** Settings is owner/admin only; appended to the nav for them. */
+const SETTINGS_ITEM: NavItem = {
+  href: "/dashboard/settings",
+  label: "Ajustes",
+  icon: "settings",
+};
 
 export default async function DashboardLayout({
   children,
@@ -60,6 +68,10 @@ export default async function DashboardLayout({
   const avatarUrl =
     (user.user_metadata?.avatar_url as string | undefined) ?? null;
 
+  const role = ctx.ok && ctx.data ? ctx.data.role : null;
+  const navItems =
+    role === "owner" || role === "admin" ? [...NAV, SETTINGS_ITEM] : NAV;
+
   return (
     <AppShell
       actions={
@@ -69,7 +81,7 @@ export default async function DashboardLayout({
           <SignOutButton />
         </div>
       }
-      nav={<SideNav items={NAV} />}
+      nav={<SideNav items={navItems} />}
       topLeft={
         orgName ? (
           <div className="flex items-center gap-2">

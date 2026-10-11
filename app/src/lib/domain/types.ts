@@ -13,6 +13,24 @@ export interface Organization {
   slug: string;
   logoUrl: string | null;
   plan: string;
+  /** True when an org-level Discord webhook is set (URL is never exposed). */
+  hasDiscordWebhook: boolean;
+  /** Whether new convocatorias announce on Discord by default. */
+  discordNotifyDefault: boolean;
+}
+
+/** A registered rival team at the organization level (shared by all teams). */
+export interface Opponent {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+}
+
+/** A configurable match-parameter option (a map or a mode). */
+export interface GameOption {
+  id: string;
+  kind: "map" | "mode";
+  label: string;
 }
 
 export interface Member {
@@ -56,6 +74,47 @@ export interface Team {
   maxSlots: number;
   rosterCount: number; // filled slots
   slots: TeamSlot[];
+  /** True when a Discord webhook is configured (URL itself is never exposed). */
+  hasDiscordWebhook: boolean;
+}
+
+/** Kind of scheduled team event. */
+export type TeamEventKind = "scrim" | "official" | "practice";
+
+/** A player's response to an event convocatoria. */
+export type AttendanceStatus = "yes" | "no" | "maybe" | "pending";
+
+/** One rostered player's attendance for an event. */
+export interface EventAttendee {
+  membershipId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  status: AttendanceStatus;
+}
+
+/** A scheduled scrim / match / practice for a team, with attendance. */
+export interface TeamEvent {
+  id: string;
+  teamId: string;
+  kind: TeamEventKind;
+  title: string;
+  /** Free-text rival (for one-off opponents). */
+  opponent: string | null;
+  /** Registered rival id (official/frequent opponents), when chosen. */
+  opponentId: string | null;
+  /** Resolved name of the registered rival (null for free-text or none). */
+  opponentName: string | null;
+  /** Resolved logo of the registered rival. */
+  opponentLogoUrl: string | null;
+  /** ISO timestamp. */
+  scheduledAt: string;
+  durationMin: number | null;
+  /** Chosen game mode (from the org catalog), or null. */
+  gameMode: string | null;
+  /** Chosen maps (from the org catalog). */
+  maps: string[];
+  notes: string | null;
+  attendees: EventAttendee[];
 }
 
 /** A slot on a team. Exists even when empty; keeps its label. */
@@ -132,6 +191,28 @@ export interface MemberProfile {
   phone: string | null;
   privacyAccepted: boolean;
   accounts: LinkedAccount[];
+}
+
+// --- Live now ---------------------------------------------------------------
+
+/** A member who is streaming live right now, with their channel metadata. */
+export interface LiveMemberStream {
+  membershipId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  /** Streaming platform (only "twitch" is detected today). */
+  platform: Platform;
+  /** The member's channel handle/login. */
+  channel: string;
+  /** Public URL to the live channel. */
+  url: string;
+  title: string;
+  /** Twitch category/game, or "" when unknown. */
+  game: string;
+  viewerCount: number;
+  /** ISO timestamp the stream started. */
+  startedAt: string;
+  thumbnailUrl: string;
 }
 
 // --- Notifications ----------------------------------------------------------

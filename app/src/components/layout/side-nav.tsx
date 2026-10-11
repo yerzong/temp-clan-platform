@@ -10,6 +10,8 @@ import {
   Clapperboard,
   Trophy,
   UserCircle,
+  Radio,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,11 +24,13 @@ export interface NavItem {
 
 const ICONS: Record<string, LucideIcon> = {
   overview: LayoutGrid,
+  live: Radio,
   members: Users,
   esports: Swords,
   content: Clapperboard,
   league: Trophy,
   invitations: UserPlus,
+  settings: Settings,
   profile: UserCircle,
 };
 

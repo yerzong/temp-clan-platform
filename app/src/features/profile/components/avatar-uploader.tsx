@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { AvatarCropModal } from "./avatar-crop-modal";
 
 function initials(name: string): string {
   const cleaned = name.replace(/^[.@]+/, "");
@@ -14,10 +15,10 @@ function initials(name: string): string {
 }
 
 /**
- * Avatar with a file picker that uploads to Supabase Storage (bucket "avatars",
- * path "<uid>/avatar.<ext>"), then reports the public URL back via onUploaded.
- * Accepts png/jpeg/webp. The URL is written into a hidden input in the parent
- * form so the normal profile save persists it.
+ * Avatar picker. Choosing a file opens a crop modal (drag to frame, zoom, and an
+ * optional in-browser "remove background" step). The framed square PNG is only
+ * uploaded to Supabase Storage on confirm, then the public URL is reported via
+ * onUploaded and/or a hidden input the parent form submits.
  */
 export function AvatarUploader({
   initialUrl,
@@ -32,21 +33,26 @@ export function AvatarUploader({
   noHiddenInput?: boolean;
 }) {
   const [url, setUrl] = useState<string | null>(initialUrl);
+  const [picked, setPicked] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+  function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
     if (!file) return;
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
       toast.error("Usa una imagen PNG, JPEG o WEBP.");
       return;
     }
-    if (file.size > 3 * 1024 * 1024) {
-      toast.error("La imagen no debe superar 3 MB.");
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error("La imagen no debe superar 12 MB.");
       return;
     }
+    setPicked(file);
+  }
 
+  async function handleConfirm(blob: Blob) {
     setUploading(true);
     try {
       const supabase = createClient();
@@ -57,11 +63,10 @@ export function AvatarUploader({
         toast.error("Debes iniciar sesión.");
         return;
       }
-      const ext = file.name.split(".").pop() ?? "png";
-      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const path = `${user.id}/avatar-${Date.now()}.png`;
       const { error } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, blob, { upsert: true, contentType: "image/png" });
       if (error) {
         toast.error(error.message);
         return;
@@ -69,7 +74,8 @@ export function AvatarUploader({
       const { data } = supabase.storage.from("avatars").getPublicUrl(path);
       setUrl(data.publicUrl);
       onUploaded?.(data.publicUrl);
-      toast.success("Foto actualizada. Guarda el perfil para confirmar.");
+      setPicked(null);
+      toast.success("Foto lista. Guarda el perfil para confirmar.");
     } finally {
       setUploading(false);
     }
@@ -77,7 +83,6 @@ export function AvatarUploader({
 
   return (
     <div className="flex items-center gap-4">
-      {/* Hidden input the parent form submits (unless the parent owns it) */}
       {!noHiddenInput && <input type="hidden" name="avatarUrl" value={url ?? ""} />}
 
       <button
@@ -111,9 +116,11 @@ export function AvatarUploader({
           disabled={uploading}
           className="w-fit rounded-md border border-tc-border px-3 py-1.5 text-xs font-medium text-tc-fg-secondary transition-colors hover:border-tc-accent hover:text-tc-fg disabled:opacity-50"
         >
-          {uploading ? "Subiendo…" : "Cambiar foto"}
+          {uploading ? "Subiendo…" : url ? "Cambiar foto" : "Subir foto"}
         </button>
-        <span className="text-[11px] text-tc-fg-muted">PNG, JPEG o WEBP · máx 3 MB</span>
+        <span className="text-[11px] text-tc-fg-muted">
+          PNG, JPEG o WEBP · máx 12 MB · encuadra y quita el fondo
+        </span>
       </div>
 
       <input
@@ -122,6 +129,13 @@ export function AvatarUploader({
         accept="image/png,image/jpeg,image/webp"
         onChange={onPick}
         className="hidden"
+      />
+
+      <AvatarCropModal
+        open={picked !== null}
+        file={picked}
+        onClose={() => setPicked(null)}
+        onConfirm={handleConfirm}
       />
     </div>
   );

@@ -3,6 +3,10 @@ import type {
   Team,
   TeamSlot,
   RosterPlayer,
+  TeamEvent,
+  TeamEventKind,
+  EventAttendee,
+  AttendanceStatus,
   Result,
 } from "@/lib/domain/types";
 
@@ -40,8 +44,58 @@ function mapTeam(row: Record<string, unknown>): Team {
     maxSlots: (row.max_slots as number | null) ?? slots.length,
     rosterCount: slots.filter((s) => s.membershipId).length,
     slots,
+    // Only the boolean is kept; the webhook URL never reaches the client.
+    hasDiscordWebhook:
+      (row.discord_webhook_url as string | null | undefined) != null,
   };
 }
+
+/** Map a raw team_events row (with nested attendance) to the domain shape. */
+function mapEvent(row: Record<string, unknown>): TeamEvent {
+  const rawAttend = Array.isArray(row.event_attendance)
+    ? row.event_attendance
+    : [];
+  const attendees: EventAttendee[] = rawAttend.map(
+    (a: Record<string, unknown>) => {
+      const membership = a.memberships as unknown as {
+        member_profiles?: { display_name?: string; avatar_url?: string | null };
+      } | null;
+      const profile = membership?.member_profiles;
+      return {
+        membershipId: a.membership_id as string,
+        displayName: profile?.display_name ?? "Sin nombre",
+        avatarUrl: profile?.avatar_url ?? null,
+        status: (a.status as AttendanceStatus) ?? "pending",
+      };
+    }
+  );
+  attendees.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+  const rival = row.opponents as unknown as {
+    name?: string;
+    logo_url?: string | null;
+  } | null;
+
+  return {
+    id: row.id as string,
+    teamId: row.team_id as string,
+    kind: (row.kind as TeamEventKind) ?? "scrim",
+    title: row.title as string,
+    opponent: (row.opponent as string | null) ?? null,
+    opponentId: (row.opponent_id as string | null) ?? null,
+    opponentName: rival?.name ?? null,
+    opponentLogoUrl: rival?.logo_url ?? null,
+    scheduledAt: row.scheduled_at as string,
+    durationMin: (row.duration_min as number | null) ?? null,
+    gameMode: (row.game_mode as string | null) ?? null,
+    maps: Array.isArray(row.maps) ? (row.maps as string[]) : [],
+    notes: (row.notes as string | null) ?? null,
+    attendees,
+  };
+}
+
+const EVENT_SELECT =
+  "id, team_id, kind, title, opponent, opponent_id, scheduled_at, duration_min, game_mode, maps, notes, opponents ( name, logo_url ), event_attendance ( membership_id, status, memberships ( member_profiles ( display_name, avatar_url ) ) )";
 
 /**
  * Esports service — owns teams and rosters. Single responsibility: the
@@ -67,7 +121,7 @@ export class EsportsService {
   async getTeam(teamId: string): Promise<Result<Team | null>> {
     const { data, error } = await this.supabase
       .from("teams")
-      .select(TEAM_SELECT)
+      .select(`${TEAM_SELECT}, discord_webhook_url`)
       .eq("id", teamId)
       .maybeSingle();
 
@@ -199,6 +253,141 @@ export class EsportsService {
         membershipId: r.membership_id as string,
         handle: r.handle as string,
       })),
+    };
+  }
+
+  // --- Team events (scrims / matches / practices) ---------------------------
+
+  /** All events for a team (ascending by date), each with its attendance. */
+  async listTeamEvents(teamId: string): Promise<Result<TeamEvent[]>> {
+    const { data, error } = await this.supabase
+      .from("team_events")
+      .select(EVENT_SELECT)
+      .eq("team_id", teamId)
+      .order("scheduled_at", { ascending: true });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: (data ?? []).map((r) => mapEvent(r)) };
+  }
+
+  /** Schedule a team event; seeds attendance for the current roster. */
+  async createTeamEvent(
+    teamId: string,
+    input: {
+      kind: TeamEventKind;
+      title: string;
+      opponent: string | null;
+      opponentId: string | null;
+      scheduledAt: string;
+      durationMin: number | null;
+      gameMode: string | null;
+      maps: string[];
+      notes: string | null;
+    }
+  ): Promise<Result<string>> {
+    const { data, error } = await this.supabase.rpc("create_team_event", {
+      p_team_id: teamId,
+      p_kind: input.kind,
+      p_title: input.title,
+      p_opponent: input.opponent,
+      p_opponent_id: input.opponentId,
+      p_scheduled_at: input.scheduledAt,
+      p_duration_min: input.durationMin,
+      p_game_mode: input.gameMode,
+      p_maps: input.maps,
+      p_notes: input.notes,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: data as string };
+  }
+
+  /** Update an event's details. */
+  async updateTeamEvent(
+    eventId: string,
+    input: {
+      kind: TeamEventKind;
+      title: string;
+      opponent: string | null;
+      opponentId: string | null;
+      scheduledAt: string;
+      durationMin: number | null;
+      gameMode: string | null;
+      maps: string[];
+      notes: string | null;
+    }
+  ): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("update_team_event", {
+      p_event_id: eventId,
+      p_kind: input.kind,
+      p_title: input.title,
+      p_opponent: input.opponent,
+      p_opponent_id: input.opponentId,
+      p_scheduled_at: input.scheduledAt,
+      p_duration_min: input.durationMin,
+      p_game_mode: input.gameMode,
+      p_maps: input.maps,
+      p_notes: input.notes,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Delete an event. */
+  async deleteTeamEvent(eventId: string): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("delete_team_event", {
+      p_event_id: eventId,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Set a player's attendance (admin, or the player themselves). */
+  async setEventAttendance(
+    eventId: string,
+    membershipId: string,
+    status: AttendanceStatus
+  ): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("set_event_attendance", {
+      p_event_id: eventId,
+      p_membership_id: membershipId,
+      p_status: status,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Fill the team's empty slots with demo players. Returns # created. */
+  async fillTeamDemo(teamId: string): Promise<Result<number>> {
+    const { data, error } = await this.supabase.rpc("fill_team_demo", {
+      p_team_id: teamId,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: (data as number) ?? 0 };
+  }
+
+  /** Set or clear a team's Discord webhook URL (admin only). */
+  async setTeamDiscordWebhook(
+    teamId: string,
+    url: string | null
+  ): Promise<Result<null>> {
+    const { error } = await this.supabase.rpc("set_team_discord_webhook", {
+      p_team_id: teamId,
+      p_url: url,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
+  }
+
+  /** Read a team's Discord webhook URL (server-side use only, e.g. posting). */
+  async getTeamDiscordWebhook(teamId: string): Promise<Result<string | null>> {
+    const { data, error } = await this.supabase
+      .from("teams")
+      .select("discord_webhook_url")
+      .eq("id", teamId)
+      .maybeSingle();
+    if (error) return { ok: false, error: error.message };
+    return {
+      ok: true,
+      data: (data?.discord_webhook_url as string | null) ?? null,
     };
   }
 

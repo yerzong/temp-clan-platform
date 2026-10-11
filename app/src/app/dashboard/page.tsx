@@ -1,14 +1,19 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Users, Swords, Clapperboard, Trophy } from "lucide-react";
+import { Users, Swords, Clapperboard, Trophy, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
 import { EsportsService } from "@/features/esports/esports-service";
 import { ContentService } from "@/features/content/content-service";
 import { LeagueService } from "@/features/league/league-service";
+import { LiveService } from "@/features/live/live-service";
+import { LiveStreamCard } from "@/features/live/components/live-stream-card";
 import { CreateOrgForm } from "@/features/organizations/components/create-org-form";
+import { OrgDiscordButton } from "@/features/organizations/components/org-discord-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/stat";
+import { LiveChip } from "@/components/ui/live-chip";
 import { PageHeader } from "@/components/layout/page-header";
 import { SummaryCard } from "@/components/layout/summary-card";
 
@@ -55,17 +60,20 @@ export default async function DashboardOverviewPage() {
   const orgId = organization.id;
 
   // Pull a snapshot across all modules in parallel.
-  const [membersRes, teamsRes, contentRes, leaguesRes] = await Promise.all([
-    new MemberService(supabase).listMembers(orgId),
-    new EsportsService(supabase).listTeams(orgId),
-    new ContentService(supabase).listContent(orgId),
-    new LeagueService(supabase).listLeagues(orgId),
-  ]);
+  const [membersRes, teamsRes, contentRes, leaguesRes, liveRes] =
+    await Promise.all([
+      new MemberService(supabase).listMembers(orgId),
+      new EsportsService(supabase).listTeams(orgId),
+      new ContentService(supabase).listContent(orgId),
+      new LeagueService(supabase).listLeagues(orgId),
+      new LiveService(supabase).listLive(orgId),
+    ]);
 
   const members = membersRes.ok ? membersRes.data : [];
   const teams = teamsRes.ok ? teamsRes.data : [];
   const content = contentRes.ok ? contentRes.data : [];
   const leagues = leaguesRes.ok ? leaguesRes.data : [];
+  const liveStreams = liveRes.ok ? liveRes.data : [];
 
   const contentInProgress = content.filter(
     (c) => c.status === "editing" || c.status === "review"
@@ -78,19 +86,52 @@ export default async function DashboardOverviewPage() {
         title={organization.name}
         subtitle="Tu centro de comando. Entra a cualquier área para gestionarla en detalle."
         actions={
-          <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
-            <StatTile label="Miembros" value={members.length} tone="accent" />
-            <StatTile
-              label="Jugadores"
-              value={members.filter((m) => m.isPlayer).length}
-            />
-            <StatTile
-              label="Creadores"
-              value={members.filter((m) => m.isCreator).length}
-            />
+          <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
+            {(role === "owner" || role === "admin") && (
+              <OrgDiscordButton
+                connected={organization.hasDiscordWebhook}
+              />
+            )}
+            <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:min-w-[380px]">
+              <StatTile label="Miembros" value={members.length} tone="accent" />
+              <StatTile
+                label="Jugadores"
+                value={members.filter((m) => m.isPlayer).length}
+              />
+              <StatTile
+                label="Creadores"
+                value={members.filter((m) => m.isCreator).length}
+              />
+            </div>
           </div>
         }
       />
+
+      {/* Live now band — only when someone is streaming */}
+      {liveStreams.length > 0 && (
+        <section className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <LiveChip />
+              <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
+                En vivo ahora · {liveStreams.length}
+              </h2>
+            </div>
+            <Link
+              href="/dashboard/live"
+              className="inline-flex items-center gap-1 text-xs font-medium text-tc-fg-tertiary transition-colors hover:text-tc-fg"
+            >
+              Ver todos
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="tc-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {liveStreams.slice(0, 3).map((stream) => (
+              <LiveStreamCard key={stream.membershipId} stream={stream} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Cross-module snapshot */}
       <div className="tc-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

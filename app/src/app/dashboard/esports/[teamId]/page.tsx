@@ -5,10 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 import { OrganizationService } from "@/features/organizations/organization-service";
 import { MemberService } from "@/features/members/member-service";
 import { EsportsService } from "@/features/esports/esports-service";
+import { ProfileService } from "@/features/profile/profile-service";
 import { getLiveLogins } from "@/features/esports/twitch-service";
 import { SlotCard } from "@/features/esports/components/slot-card";
-import { AddSlotCard } from "@/features/esports/components/add-slot-card";
 import { TeamActions } from "@/features/esports/components/team-actions";
+import { ScrimsPanel } from "@/features/esports/components/scrims-panel";
+import { FillTeamButton } from "@/features/esports/components/fill-team-button";
 import { GAME_LABELS } from "@/features/esports/components/team-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
@@ -44,10 +46,16 @@ export default async function TeamDetailPage({
   const orgId = ctx.data.organization.id;
   const esports = new EsportsService(supabase);
 
-  const [teamRes, membersRes] = await Promise.all([
-    esports.getTeam(teamId),
-    new MemberService(supabase).listMembers(orgId),
-  ]);
+  const orgService = new OrganizationService(supabase);
+  const [teamRes, membersRes, eventsRes, myProfileRes, opponentsRes, optionsRes] =
+    await Promise.all([
+      esports.getTeam(teamId),
+      new MemberService(supabase).listMembers(orgId),
+      esports.listTeamEvents(teamId),
+      new ProfileService(supabase).getMyProfile(orgId, user.id),
+      orgService.listOpponents(orgId),
+      orgService.listGameOptions(orgId),
+    ]);
 
   if (!teamRes.ok) {
     return (
@@ -63,6 +71,20 @@ export default async function TeamDetailPage({
   const team = teamRes.data;
   const captain = team.slots.find((s) => s.isCaptain) ?? null;
   const canVerify = ctx.data.role === "owner" || ctx.data.role === "admin";
+  const events = eventsRes.ok ? eventsRes.data : [];
+  const myMembershipId =
+    myProfileRes.ok && myProfileRes.data
+      ? myProfileRes.data.membershipId
+      : null;
+  const opponents = opponentsRes.ok ? opponentsRes.data : [];
+  const gameOptions = optionsRes.ok ? optionsRes.data : [];
+  const mapOptions = gameOptions
+    .filter((o) => o.kind === "map")
+    .map((o) => o.label);
+  const modeOptions = gameOptions
+    .filter((o) => o.kind === "mode")
+    .map((o) => o.label);
+  const orgHasDiscord = ctx.data.organization.hasDiscordWebhook;
 
   // Players not already in a slot on this team.
   const onTeam = new Set(
@@ -125,9 +147,14 @@ export default async function TeamDetailPage({
         <TeamMetric label="Juego" value={GAME_LABELS[team.game] ?? team.game} />
       </div>
 
-      <h2 className="mb-3 font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
-        Roster
-      </h2>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-tc-fg-tertiary">
+          Roster
+        </h2>
+        {canVerify && team.rosterCount < team.maxSlots && (
+          <FillTeamButton teamId={team.id} />
+        )}
+      </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {team.slots.map((slot) => (
           <SlotCard
@@ -138,8 +165,26 @@ export default async function TeamDetailPage({
             isLive={slot.membershipId ? liveMemberIds.has(slot.membershipId) : false}
           />
         ))}
-        <AddSlotCard teamId={team.id} />
       </div>
+
+      <ScrimsPanel
+        team={{
+          id: team.id,
+          name: team.name,
+          hasDiscordWebhook: team.hasDiscordWebhook,
+        }}
+        events={events}
+        canManage={canVerify}
+        myMembershipId={myMembershipId}
+        orgHasDiscord={orgHasDiscord}
+        options={{
+          opponents,
+          mapOptions,
+          modeOptions,
+          discordNotifyDefault: ctx.data.organization.discordNotifyDefault,
+          discordConnected: team.hasDiscordWebhook || orgHasDiscord,
+        }}
+      />
     </div>
   );
 }
