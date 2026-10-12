@@ -66,6 +66,7 @@ function mapEvent(row: Record<string, unknown>): TeamEvent {
         displayName: profile?.display_name ?? "Sin nombre",
         avatarUrl: profile?.avatar_url ?? null,
         status: (a.status as AttendanceStatus) ?? "pending",
+        reason: (a.reason as string | null) ?? null,
       };
     }
   );
@@ -89,13 +90,15 @@ function mapEvent(row: Record<string, unknown>): TeamEvent {
     durationMin: (row.duration_min as number | null) ?? null,
     gameMode: (row.game_mode as string | null) ?? null,
     maps: Array.isArray(row.maps) ? (row.maps as string[]) : [],
+    teamSize: (row.team_size as string | null) ?? null,
+    seriesFormat: (row.series_format as string | null) ?? null,
     notes: (row.notes as string | null) ?? null,
     attendees,
   };
 }
 
 const EVENT_SELECT =
-  "id, team_id, kind, title, opponent, opponent_id, scheduled_at, duration_min, game_mode, maps, notes, opponents ( name, logo_url ), event_attendance ( membership_id, status, memberships ( member_profiles ( display_name, avatar_url ) ) )";
+  "id, team_id, kind, title, opponent, opponent_id, scheduled_at, duration_min, game_mode, maps, team_size, series_format, notes, opponents ( name, logo_url ), event_attendance ( membership_id, status, reason, memberships ( member_profiles ( display_name, avatar_url ) ) )";
 
 /**
  * Esports service — owns teams and rosters. Single responsibility: the
@@ -281,6 +284,8 @@ export class EsportsService {
       durationMin: number | null;
       gameMode: string | null;
       maps: string[];
+      teamSize: string | null;
+      seriesFormat: string | null;
       notes: string | null;
     }
   ): Promise<Result<string>> {
@@ -294,6 +299,8 @@ export class EsportsService {
       p_duration_min: input.durationMin,
       p_game_mode: input.gameMode,
       p_maps: input.maps,
+      p_team_size: input.teamSize,
+      p_series_format: input.seriesFormat,
       p_notes: input.notes,
     });
     if (error) return { ok: false, error: error.message };
@@ -312,6 +319,8 @@ export class EsportsService {
       durationMin: number | null;
       gameMode: string | null;
       maps: string[];
+      teamSize: string | null;
+      seriesFormat: string | null;
       notes: string | null;
     }
   ): Promise<Result<null>> {
@@ -325,6 +334,8 @@ export class EsportsService {
       p_duration_min: input.durationMin,
       p_game_mode: input.gameMode,
       p_maps: input.maps,
+      p_team_size: input.teamSize,
+      p_series_format: input.seriesFormat,
       p_notes: input.notes,
     });
     if (error) return { ok: false, error: error.message };
@@ -344,12 +355,14 @@ export class EsportsService {
   async setEventAttendance(
     eventId: string,
     membershipId: string,
-    status: AttendanceStatus
+    status: AttendanceStatus,
+    reason: string | null
   ): Promise<Result<null>> {
     const { error } = await this.supabase.rpc("set_event_attendance", {
       p_event_id: eventId,
       p_membership_id: membershipId,
       p_status: status,
+      p_reason: reason,
     });
     if (error) return { ok: false, error: error.message };
     return { ok: true, data: null };

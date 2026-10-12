@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition, useEffect } from "react";
-import { ExternalLink, Trash2, Pencil, X } from "lucide-react";
+import { ExternalLink, Trash2, Pencil, X, CalendarClock, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import type {
   ContentPiece,
@@ -12,8 +12,36 @@ import {
   setContentStatus,
   deleteContent,
   updateContent,
+  setContentAuthor,
   type ActionResult,
 } from "../actions";
+
+export interface CreatorOption {
+  membershipId: string;
+  displayName: string;
+}
+
+/** Deadline chip meta: null when none, else label + color class. */
+function dueMeta(
+  dueDate: string | null,
+  status: ContentStatus
+): { label: string; cls: string } | null {
+  if (!dueDate) return null;
+  const due = new Date(`${dueDate}T00:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = Math.round((due.getTime() - today.getTime()) / 86400000);
+  const short = due.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+  if (status === "published") {
+    return { label: short, cls: "text-tc-fg-muted" };
+  }
+  if (days < 0) {
+    return { label: `Venció ${short}`, cls: "text-[hsl(var(--tc-destructive))]" };
+  }
+  if (days === 0) return { label: "Hoy", cls: "text-[hsl(var(--tc-destructive))]" };
+  if (days <= 2) return { label: short, cls: "text-[hsl(var(--tc-amber))]" };
+  return { label: short, cls: "text-tc-fg-muted" };
+}
 import { useActionToast } from "@/lib/use-action-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,7 +69,13 @@ const NEXT_LABEL: Partial<Record<ContentStatus, string>> = {
   review: "Publicar",
 };
 
-export function ContentCard({ piece }: { piece: ContentPiece }) {
+export function ContentCard({
+  piece,
+  creators = [],
+}: {
+  piece: ContentPiece;
+  creators?: CreatorOption[];
+}) {
   const [, formAction, pending] = useActionState(
     setContentStatus,
     initialState
@@ -49,11 +83,20 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, startDelete] = useTransition();
   const [editing, setEditing] = useState(false);
+  const [reassigning, startReassign] = useTransition();
   const [updateState, updateAction, updating] = useActionState(
     updateContent,
     initialState
   );
   const next = NEXT_STATUS[piece.status];
+  const due = dueMeta(piece.dueDate, piece.status);
+
+  function reassign(membershipId: string) {
+    startReassign(async () => {
+      const res = await setContentAuthor(piece.id, membershipId || null);
+      if (res?.error) toast.error(res.error);
+    });
+  }
 
   useActionToast(updateState, updating, "Content updated");
 
@@ -123,6 +166,16 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
             name="url"
             defaultValue={piece.url ?? ""}
             placeholder="https://…"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`cd-${piece.id}`}>Fecha límite</Label>
+          <input
+            id={`cd-${piece.id}`}
+            type="date"
+            name="dueDate"
+            defaultValue={piece.dueDate ?? ""}
+            className="h-10 w-full rounded-md border border-tc-border bg-input px-3 text-sm text-tc-fg outline-none focus-visible:border-tc-accent"
           />
         </div>
         {updateState.error && (
@@ -201,12 +254,39 @@ export function ContentCard({ piece }: { piece: ContentPiece }) {
           {PLATFORM_OPTIONS.find((p) => p.value === piece.platform)?.label ??
             piece.platform}
         </Badge>
-        {piece.authorName && (
-          <span className="font-mono text-[11px] text-tc-fg-muted">
-            {piece.authorName}
+        {due && (
+          <span
+            className={`inline-flex items-center gap-1 text-[11px] font-medium ${due.cls}`}
+          >
+            <CalendarClock className="h-3 w-3" />
+            {due.label}
           </span>
         )}
       </div>
+
+      {/* Creator assignment */}
+      <label className="flex items-center gap-1.5 text-[11px] text-tc-fg-muted">
+        <UserRound className="h-3.5 w-3.5 shrink-0" />
+        <select
+          value={piece.authorMembershipId ?? ""}
+          disabled={reassigning}
+          onChange={(e) => reassign(e.target.value)}
+          className="w-full rounded-md border border-tc-border bg-input px-2 py-1 text-[11px] text-tc-fg-secondary outline-none focus-visible:border-tc-accent disabled:opacity-60"
+          aria-label="Asignar creador"
+        >
+          <option value="">Sin asignar</option>
+          {creators.map((c) => (
+            <option key={c.membershipId} value={c.membershipId}>
+              {c.displayName}
+            </option>
+          ))}
+          {piece.authorMembershipId &&
+            !creators.some((c) => c.membershipId === piece.authorMembershipId) &&
+            piece.authorName && (
+              <option value={piece.authorMembershipId}>{piece.authorName}</option>
+            )}
+        </select>
+      </label>
 
       {next && (
         <form action={formAction}>

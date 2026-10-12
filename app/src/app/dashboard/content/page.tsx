@@ -159,7 +159,13 @@ export default async function ContentPage() {
           description="Abre “Agregar contenido” arriba para iniciar el pipeline."
         />
       ) : (
-        <ContentBoard pieces={pieces} />
+        <ContentBoard
+          pieces={pieces}
+          creators={creators.map((c) => ({
+            membershipId: c.membershipId,
+            displayName: c.displayName,
+          }))}
+        />
       )}
     </div>
   );

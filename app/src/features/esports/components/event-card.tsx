@@ -1,7 +1,17 @@
 "use client";
 
-import { useTransition } from "react";
-import { Pencil, Trash2, Clock, Swords, Gamepad2, Map as MapIcon } from "lucide-react";
+import { useState, useTransition } from "react";
+import {
+  Pencil,
+  Trash2,
+  Clock,
+  Swords,
+  Gamepad2,
+  Map as MapIcon,
+  Users,
+  Trophy,
+  MessageSquare,
+} from "lucide-react";
 import { toast } from "sonner";
 import type {
   TeamEvent,
@@ -10,6 +20,7 @@ import type {
   EventAttendee,
 } from "@/lib/domain/types";
 import { setAttendance, deleteEvent } from "../actions";
+import { AttendanceDialog } from "./attendance-dialog";
 
 const KIND_META: Record<TeamEventKind, { label: string; className: string; noun: string }> = {
   scrim: {
@@ -56,14 +67,6 @@ const CTA_LABEL: Record<"yes" | "maybe" | "no", string> = {
   yes: "✓ Voy",
   maybe: "Tal vez",
   no: "No puedo",
-};
-
-/** Next status when an admin clicks a roster avatar to cycle it. */
-const NEXT_STATUS: Record<AttendanceStatus, AttendanceStatus> = {
-  pending: "yes",
-  yes: "maybe",
-  maybe: "no",
-  no: "yes",
 };
 
 function calendarParts(iso: string): { weekday: string; day: string; month: string } {
@@ -120,6 +123,12 @@ export function EventCard({
   isPast?: boolean;
 }) {
   const [pending, startTransition] = useTransition();
+  const [dialog, setDialog] = useState<{
+    membershipId: string;
+    title: string;
+    status: AttendanceStatus;
+    reason: string | null;
+  } | null>(null);
   const kind = KIND_META[event.kind];
   const cal = calendarParts(event.scheduledAt);
   const relative = relativeStr(event.scheduledAt, now);
@@ -129,21 +138,46 @@ export function EventCard({
   const me = myMembershipId
     ? event.attendees.find((a) => a.membershipId === myMembershipId) ?? null
     : null;
+  const hasParams =
+    event.gameMode ||
+    event.maps.length > 0 ||
+    event.teamSize ||
+    event.seriesFormat;
+  const withReason = event.attendees.filter(
+    (a) => a.reason && (a.status === "no" || a.status === "maybe")
+  );
 
-  function save(membershipId: string, status: AttendanceStatus) {
+  function save(
+    membershipId: string,
+    status: AttendanceStatus,
+    reason: string | null
+  ) {
     startTransition(async () => {
       const res = await setAttendance({
         eventId: event.id,
         membershipId,
         status,
+        reason,
         teamId,
       });
       if (res?.error) toast.error(res.error);
+      else setDialog(null);
     });
   }
 
   function canEditAttendee(a: EventAttendee): boolean {
     return !isPast && (canManage || a.membershipId === myMembershipId);
+  }
+
+  /** Open the status dialog for an attendee (admin confirm / reason capture). */
+  function openFor(a: EventAttendee, presetStatus?: AttendanceStatus) {
+    const isSelf = a.membershipId === myMembershipId;
+    setDialog({
+      membershipId: a.membershipId,
+      title: isSelf ? "Tu asistencia" : `Asistencia de ${a.displayName}`,
+      status: presetStatus ?? a.status,
+      reason: a.reason,
+    });
   }
 
   return (
@@ -221,17 +255,19 @@ export function EventCard({
         )}
       </div>
 
-      {(event.gameMode || event.maps.length > 0) && (
+      {hasParams && (
         <div className="flex flex-col gap-2.5 rounded-lg border border-tc-border-soft bg-tc-surface-1 p-3">
-          {event.gameMode && (
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-tc-fg-muted">
-                <Gamepad2 className="h-3.5 w-3.5" />
-                Modo
-              </span>
-              <span className="inline-flex items-center rounded-md bg-[hsl(var(--tc-accent))]/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[hsl(var(--tc-accent-hover))] ring-1 ring-[hsl(var(--tc-accent))]/30">
-                {event.gameMode}
-              </span>
+          {(event.teamSize || event.gameMode || event.seriesFormat) && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              {event.teamSize && (
+                <MetaChip icon={Users} label="Tamaño" value={event.teamSize} />
+              )}
+              {event.gameMode && (
+                <MetaChip icon={Gamepad2} label="Modo" value={event.gameMode} accent />
+              )}
+              {event.seriesFormat && (
+                <MetaChip icon={Trophy} label="Formato" value={event.seriesFormat} />
+              )}
             </div>
           )}
 
@@ -277,7 +313,11 @@ export function EventCard({
                   key={st}
                   type="button"
                   disabled={pending}
-                  onClick={() => save(me.membershipId, st)}
+                  onClick={() =>
+                    st === "yes"
+                      ? save(me.membershipId, "yes", null)
+                      : openFor(me, st)
+                  }
                   className={`rounded-md py-2 text-xs font-bold uppercase tracking-wide transition-colors disabled:opacity-60 ${
                     active
                       ? CTA_ACTIVE[st]
@@ -311,11 +351,13 @@ export function EventCard({
                   key={a.membershipId}
                   type="button"
                   disabled={!editable || pending}
-                  onClick={() => save(a.membershipId, NEXT_STATUS[a.status])}
+                  onClick={() => openFor(a)}
                   title={
-                    editable
-                      ? `${a.displayName} (clic para cambiar)`
-                      : a.displayName
+                    a.reason
+                      ? `${a.displayName}: ${a.reason}`
+                      : editable
+                        ? `${a.displayName} (clic para cambiar)`
+                        : a.displayName
                   }
                   className={`relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-tc-surface-2 ring-2 ${
                     STATUS_RING[a.status]
@@ -342,8 +384,69 @@ export function EventCard({
               );
             })}
           </div>
+
+          {withReason.length > 0 && (
+            <div className="flex flex-col gap-1 pt-0.5">
+              {withReason.map((a) => (
+                <p
+                  key={a.membershipId}
+                  className="flex items-start gap-1.5 text-[11px] text-tc-fg-tertiary"
+                >
+                  <MessageSquare className="mt-0.5 h-3 w-3 shrink-0 text-tc-fg-muted" />
+                  <span>
+                    <span className="font-medium text-tc-fg-secondary">
+                      {a.displayName}:
+                    </span>{" "}
+                    {a.reason}
+                  </span>
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       )}
+
+      <AttendanceDialog
+        open={dialog !== null}
+        title={dialog?.title ?? ""}
+        initialStatus={dialog?.status ?? "yes"}
+        initialReason={dialog?.reason ?? null}
+        pending={pending}
+        onClose={() => setDialog(null)}
+        onConfirm={(status, reason) =>
+          dialog && save(dialog.membershipId, status, reason)
+        }
+      />
+    </div>
+  );
+}
+
+function MetaChip({
+  icon: Icon,
+  label,
+  value,
+  accent = false,
+}: {
+  icon: typeof Users;
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-tc-fg-muted">
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+      </span>
+      <span
+        className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${
+          accent
+            ? "bg-[hsl(var(--tc-accent))]/15 text-[hsl(var(--tc-accent-hover))] ring-1 ring-[hsl(var(--tc-accent))]/30"
+            : "bg-tc-surface-2 text-tc-fg-secondary"
+        }`}
+      >
+        {value}
+      </span>
     </div>
   );
 }

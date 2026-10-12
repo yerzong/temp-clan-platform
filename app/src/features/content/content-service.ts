@@ -19,7 +19,7 @@ export class ContentService {
     const { data, error } = await this.supabase
       .from("content_pieces")
       .select(
-        "id, title, platform, status, url, created_at, memberships ( member_profiles ( display_name ) )"
+        "id, title, platform, status, url, due_date, created_at, membership_id, memberships ( member_profiles ( display_name ) )"
       )
       .eq("org_id", orgId)
       .order("created_at", { ascending: false });
@@ -36,7 +36,9 @@ export class ContentService {
         platform: row.platform as ContentPlatform,
         status: row.status as ContentStatus,
         url: (row.url as string | null) ?? null,
+        authorMembershipId: (row.membership_id as string | null) ?? null,
         authorName: membership?.member_profiles?.display_name ?? null,
+        dueDate: (row.due_date as string | null) ?? null,
         createdAt: row.created_at as string,
       };
     });
@@ -52,6 +54,7 @@ export class ContentService {
       platform: ContentPlatform;
       url: string | null;
       membershipId: string | null;
+      dueDate?: string | null;
     }
   ): Promise<Result<string>> {
     const { data, error } = await this.supabase
@@ -62,12 +65,26 @@ export class ContentService {
         platform: input.platform,
         url: input.url,
         membership_id: input.membershipId,
+        due_date: input.dueDate ?? null,
       })
       .select("id")
       .single();
 
     if (error) return { ok: false, error: error.message };
     return { ok: true, data: data.id as string };
+  }
+
+  /** Reassign (or clear) a piece's creator. */
+  async setAuthor(
+    contentId: string,
+    membershipId: string | null
+  ): Promise<Result<null>> {
+    const { error } = await this.supabase
+      .from("content_pieces")
+      .update({ membership_id: membershipId })
+      .eq("id", contentId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: null };
   }
 
   /** Move a content piece to a new status. */
@@ -84,14 +101,24 @@ export class ContentService {
     return { ok: true, data: null };
   }
 
-  /** Update a content piece's title, platform, and link. */
+  /** Update a content piece's title, platform, link, and due date. */
   async updateContent(
     contentId: string,
-    input: { title: string; platform: ContentPlatform; url: string | null }
+    input: {
+      title: string;
+      platform: ContentPlatform;
+      url: string | null;
+      dueDate?: string | null;
+    }
   ): Promise<Result<null>> {
     const { error } = await this.supabase
       .from("content_pieces")
-      .update({ title: input.title, platform: input.platform, url: input.url })
+      .update({
+        title: input.title,
+        platform: input.platform,
+        url: input.url,
+        due_date: input.dueDate ?? null,
+      })
       .eq("id", contentId);
 
     if (error) return { ok: false, error: error.message };

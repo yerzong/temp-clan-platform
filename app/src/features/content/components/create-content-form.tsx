@@ -78,6 +78,16 @@ export function CreateContentForm({ creators }: { creators: Member[] }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
+        <Label htmlFor="content-due">Fecha límite (opcional)</Label>
+        <input
+          id="content-due"
+          type="date"
+          name="dueDate"
+          className="h-10 w-full rounded-md border border-tc-border bg-input px-3 text-sm text-tc-fg outline-none focus-visible:border-tc-accent"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="content-url">Enlace (opcional)</Label>
         <Input
           id="content-url"

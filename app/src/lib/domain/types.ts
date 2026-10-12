@@ -90,6 +90,8 @@ export interface EventAttendee {
   displayName: string;
   avatarUrl: string | null;
   status: AttendanceStatus;
+  /** Optional note (e.g. why they can't make it). */
+  reason: string | null;
 }
 
 /** A scheduled scrim / match / practice for a team, with attendance. */
@@ -111,8 +113,12 @@ export interface TeamEvent {
   durationMin: number | null;
   /** Chosen game mode (from the org catalog), or null. */
   gameMode: string | null;
-  /** Chosen maps (from the org catalog). */
+  /** Chosen maps (map pool for the series). */
   maps: string[];
+  /** Team size format, e.g. "4v4". */
+  teamSize: string | null;
+  /** Series format, e.g. "Bo3". */
+  seriesFormat: string | null;
   notes: string | null;
   attendees: EventAttendee[];
 }
@@ -237,7 +243,11 @@ export interface ContentPiece {
   platform: ContentPlatform;
   status: ContentStatus;
   url: string | null;
+  /** Assigned creator's membership id (for reassignment + filtering). */
+  authorMembershipId: string | null;
   authorName: string | null;
+  /** Optional deadline (ISO date), or null. */
+  dueDate: string | null;
   createdAt: string;
 }
 

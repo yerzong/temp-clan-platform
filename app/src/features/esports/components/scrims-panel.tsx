@@ -327,6 +327,8 @@ function EventFormSheet({
           customMaps={options.mapOptions}
           initialMode={event?.gameMode ?? null}
           initialMaps={event?.maps ?? []}
+          initialTeamSize={event?.teamSize ?? null}
+          initialSeriesFormat={event?.seriesFormat ?? null}
         />
 
         <div className="flex flex-col gap-1.5">

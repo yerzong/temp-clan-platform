@@ -49,6 +49,7 @@ export async function createContent(
   const platform = String(formData.get("platform") ?? "other") as ContentPlatform;
   const url = String(formData.get("url") ?? "").trim() || null;
   const membershipId = String(formData.get("membershipId") ?? "") || null;
+  const dueDate = String(formData.get("dueDate") ?? "").trim() || null;
 
   if (!title) return { error: "Title is required." };
   if (!PLATFORMS.includes(platform)) return { error: "Pick a valid platform." };
@@ -62,6 +63,7 @@ export async function createContent(
     platform,
     url,
     membershipId,
+    dueDate,
   });
   if (!result.ok) return { error: result.error };
 
@@ -206,6 +208,7 @@ export async function updateContent(
     formData.get("platform") ?? "other"
   ) as ContentPlatform;
   const url = String(formData.get("url") ?? "").trim() || null;
+  const dueDate = String(formData.get("dueDate") ?? "").trim() || null;
 
   if (!contentId) return { error: "Missing content." };
   if (!title) return { error: "Title is required." };
@@ -216,7 +219,26 @@ export async function updateContent(
     title,
     platform,
     url,
+    dueDate,
   });
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/content");
+  return {};
+}
+
+/** Reassign (or clear) a content piece's creator. */
+export async function setContentAuthor(
+  contentId: string,
+  membershipId: string | null
+): Promise<ActionResult> {
+  if (!contentId) return { error: "Missing content." };
+
+  const supabase = await createClient();
+  const result = await new ContentService(supabase).setAuthor(
+    contentId,
+    membershipId
+  );
   if (!result.ok) return { error: result.error };
 
   revalidatePath("/dashboard/content");

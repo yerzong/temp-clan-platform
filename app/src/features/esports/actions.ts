@@ -327,6 +327,8 @@ interface EventFields {
   durationMin: number | null;
   gameMode: string | null;
   maps: string[];
+  teamSize: string | null;
+  seriesFormat: string | null;
   notes: string | null;
 }
 
@@ -350,6 +352,8 @@ function readEventForm(
     .getAll("maps")
     .map((m) => String(m).trim())
     .filter(Boolean);
+  const teamSize = String(formData.get("teamSize") ?? "").trim() || null;
+  const seriesFormat = String(formData.get("seriesFormat") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim() || null;
 
   if (!VALID_KINDS.includes(kind)) return { ok: false, error: "Tipo inválido." };
@@ -370,6 +374,8 @@ function readEventForm(
       durationMin,
       gameMode,
       maps,
+      teamSize,
+      seriesFormat,
       notes,
     },
   };
@@ -494,6 +500,7 @@ export async function setAttendance(input: {
   membershipId: string;
   status: AttendanceStatus;
   teamId: string;
+  reason?: string | null;
 }): Promise<ActionResult> {
   if (!input.eventId || !input.membershipId) {
     return { error: "Faltan datos de la asistencia." };
@@ -506,7 +513,8 @@ export async function setAttendance(input: {
   const result = await new EsportsService(supabase).setEventAttendance(
     input.eventId,
     input.membershipId,
-    input.status
+    input.status,
+    input.reason ?? null
   );
   if (!result.ok) return { error: result.error };
 
